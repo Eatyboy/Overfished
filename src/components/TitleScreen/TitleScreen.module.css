@@ -1,0 +1,102 @@
+/* All positions are in 1440×900 stage units, matching the Figma frame. */
+
+.screen {
+  position: absolute;
+  inset: 0;
+}
+
+.eyebrow,
+.title,
+.subtitle,
+.tagline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0;
+  text-align: center;
+}
+
+.eyebrow {
+  top: 78px;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--cream);
+  opacity: 0.85;
+}
+
+.title {
+  top: 158px;
+  font-family: var(--font-pixel);
+  font-weight: 400;
+  font-size: 80px;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--cream);
+  text-shadow:
+    7px 7px 0 var(--ink),
+    4px 4px 0 var(--ink);
+}
+
+.subtitle {
+  top: 260px;
+  font-family: var(--font-pixel);
+  font-size: 20px;
+  text-transform: uppercase;
+  color: var(--cream);
+  text-shadow: 3px 3px 0 var(--ink);
+}
+
+.tagline {
+  top: 306px;
+  font-size: 17px;
+  color: var(--ink);
+}
+
+.start {
+  position: absolute;
+  left: 515px;
+  top: 652px;
+  width: 410px;
+  height: 58px;
+  border: 0;
+  border-top: 4px solid var(--tan-light);
+  background: var(--tan);
+  font-family: var(--font-pixel);
+  font-size: 24px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow:
+    0 0 0 6px var(--ink),
+    12px 22px 0 6px var(--ink);
+  transition: transform 80ms steps(2);
+}
+
+.start:hover {
+  background: var(--tan-light);
+}
+
+.start:active {
+  transform: translate(6px, 10px);
+  box-shadow:
+    0 0 0 6px var(--ink),
+    6px 12px 0 6px var(--ink);
+}
+
+.start:focus-visible {
+  outline: 4px dashed var(--cream);
+  outline-offset: 14px;
+}
+
+.footer {
+  position: absolute;
+  right: 36px;
+  bottom: 30px;
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cream);
+  opacity: 0.6;
+}

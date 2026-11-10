@@ -1,0 +1,46 @@
+.scene {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+/* Stepped timing keeps the motion chunky, like sprite animation. */
+.bob {
+  animation: bob 2.4s steps(2, jump-none) infinite;
+}
+
+.bobSlow {
+  animation: bob 3.2s steps(2, jump-none) infinite;
+  animation-delay: -1s;
+}
+
+.ripples {
+  animation: drift 4s steps(4, jump-none) infinite alternate;
+}
+
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(4px);
+  }
+}
+
+@keyframes drift {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bob,
+  .bobSlow,
+  .ripples {
+    animation: none;
+  }
+}

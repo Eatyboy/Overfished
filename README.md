@@ -83,8 +83,6 @@ src/
 
 ## Getting started
 
-> The app hasn't been scaffolded yet. These commands apply once it is.
-
 Requirements: **Node.js 22+**.
 
 ```bash
@@ -94,7 +92,10 @@ npm install
 npm run dev       # start the dev server
 npm run test      # run unit tests
 npm run build     # production build in dist/
+npm run lint      # lint with oxlint
 ```
+
+Every screen is laid out on a fixed **1440×900 stage** (the Figma frame size) that scales to fit the window, so positions can be copied straight from Figma.
 
 ---
 

@@ -1,0 +1,49 @@
+:root {
+  /* Palette sampled from the Figma title screen */
+  --sky: #7f968b;
+  --sky-streak: #8fa498;
+  --haze: #a9b49e;
+  --city: #6c8279;
+  --water: #3e5a5d;
+  --water-light: #57716f;
+  --water-dark: #33494d;
+  --ink: #1d2b32;
+  --ink-soft: #24363d;
+  --teal: #2a4148;
+  --cream: #e7dec0;
+  --tan: #c8a86a;
+  --tan-light: #e3cc92;
+  --brown: #8a6a4f;
+  --brown-dark: #6e533d;
+
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: #161b1e;
+  color: var(--cream);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: none;
+  overflow: hidden;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+}
