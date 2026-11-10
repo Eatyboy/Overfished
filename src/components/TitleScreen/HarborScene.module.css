@@ -4,43 +4,46 @@
   display: block;
 }
 
-/* Stepped timing keeps the motion chunky, like sprite animation. */
-.bob {
-  animation: bob 2.4s steps(2, jump-none) infinite;
+/*
+ * Crane winch: the 108px cable scales from its top (70px ↔ 151px)
+ * and the hook moves by the same amount, so they stay attached.
+ * Stepped timing keeps it chunky like the rest of the pixel art.
+ */
+.craneCable {
+  transform-box: fill-box;
+  transform-origin: top;
+  animation: cable 7s steps(8, jump-none) infinite;
 }
 
-.bobSlow {
-  animation: bob 3.2s steps(2, jump-none) infinite;
-  animation-delay: -1s;
+.craneHook {
+  animation: hook 7s steps(8, jump-none) infinite;
 }
 
-.ripples {
-  animation: drift 4s steps(4, jump-none) infinite alternate;
-}
-
-@keyframes bob {
+@keyframes cable {
   0%,
   100% {
-    transform: translateY(0);
+    transform: scaleY(0.65);
   }
-  50% {
-    transform: translateY(4px);
+  45%,
+  55% {
+    transform: scaleY(1.4);
   }
 }
 
-@keyframes drift {
-  from {
-    transform: translateX(0);
+@keyframes hook {
+  0%,
+  100% {
+    transform: translateY(-38px);
   }
-  to {
-    transform: translateX(12px);
+  45%,
+  55% {
+    transform: translateY(43px);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .bob,
-  .bobSlow,
-  .ripples {
+  .craneCable,
+  .craneHook {
     animation: none;
   }
 }

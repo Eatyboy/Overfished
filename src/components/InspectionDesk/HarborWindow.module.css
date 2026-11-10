@@ -1,0 +1,45 @@
+/* Coordinates are relative to the top section (stage y 64). */
+
+.window {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 760px;
+  height: 281px;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
+.vesselTag,
+.plate {
+  position: absolute;
+  margin: 0;
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--cream);
+}
+
+.vesselTag {
+  left: 503px;
+  top: 23px;
+  width: 216px;
+  height: 42px;
+  padding: 11px 16px;
+  background: var(--ink);
+}
+
+.plate {
+  left: 248px;
+  top: 247px;
+  width: 332px;
+  height: 34px;
+  padding-top: 8px;
+  text-align: center;
+  background: var(--ink);
+  color: var(--tan-light);
+}

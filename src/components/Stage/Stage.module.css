@@ -1,14 +1,18 @@
 .viewport {
   position: fixed;
   inset: 0;
-  display: grid;
-  place-items: center;
   overflow: hidden;
 }
 
+/*
+ * Anchor the stage's centre to the viewport's centre, then scale.
+ * (Centring with grid/flex uses the unscaled 1440×900 size, which
+ * pushes the stage off-centre on screens smaller than that.)
+ */
 .stage {
-  position: relative;
-  flex: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
   overflow: hidden;
   transform-origin: center center;
 }

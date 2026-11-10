@@ -1,0 +1,57 @@
+.regulations {
+  left: 749px;
+  width: 525px;
+}
+
+.band {
+  margin: 12px 0 0;
+  padding: 7px 12px;
+  background: var(--paper-band);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rules {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.rule {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  column-gap: 14px;
+  align-items: start;
+}
+
+.badge {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 26px;
+  background: var(--teal);
+  font-size: 11px;
+  color: var(--cream);
+}
+
+.ruleTitle {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ruleText {
+  margin: 4px 0 0;
+  font-size: 15px;
+}
+
+.footer {
+  padding-top: 12px;
+  border-top: 2px solid var(--ink);
+}

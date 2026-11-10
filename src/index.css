@@ -16,6 +16,21 @@
   --brown: #8a6a4f;
   --brown-dark: #6e533d;
 
+  /* Inspection desk */
+  --teal-deep: #1d2f37;
+  --wood: #6b543f;
+  --wood-dark: #5a4634;
+  --paper: #e6dcb8;
+  --paper-band: #d6cba5;
+  --paper-muted: #7d7a66;
+  --green: #4f7a5a;
+  --green-light: #6b9675;
+  --red: #a35444;
+  --red-light: #bf6b59;
+  --bar-bg: #142127;
+  --bar-on: #8fa898;
+  --bar-off: #2c3f45;
+
   --font-pixel: 'Press Start 2P', monospace;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
 

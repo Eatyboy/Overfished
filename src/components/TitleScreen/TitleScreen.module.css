@@ -67,21 +67,79 @@
   text-transform: uppercase;
   color: var(--ink);
   cursor: pointer;
+  overflow: hidden;
   box-shadow:
     0 0 0 6px var(--ink),
     12px 22px 0 6px var(--ink);
-  transition: transform 80ms steps(2);
+  /* idle: a chunky two-frame float, like a sprite */
+  animation: float 1.6s steps(2, jump-none) infinite;
+}
+
+/* a pixel glint that sweeps across the face every few seconds */
+.start::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -60px;
+  width: 24px;
+  background: var(--tan-light);
+  opacity: 0.7;
+  box-shadow: 16px 0 0 -4px var(--tan-light);
+  transform: skewX(-20deg);
+  animation: glint 3.2s steps(16, jump-none) infinite;
+  pointer-events: none;
 }
 
 .start:hover {
   background: var(--tan-light);
+  animation: none;
+  transform: translate(-2px, -4px);
+  box-shadow:
+    0 0 0 6px var(--ink),
+    14px 26px 0 6px var(--ink);
+}
+
+.start:hover::after {
+  animation-duration: 1.2s;
+  background: var(--cream);
+  box-shadow: 16px 0 0 -4px var(--cream);
 }
 
 .start:active {
+  animation: none;
   transform: translate(6px, 10px);
   box-shadow:
     0 0 0 6px var(--ink),
     6px 12px 0 6px var(--ink);
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes glint {
+  0% {
+    left: -60px;
+  }
+  /* sweep across in the first ~40%, then rest off-screen */
+  40%,
+  100% {
+    left: 470px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .start,
+  .start::after {
+    animation: none;
+  }
 }
 
 .start:focus-visible {

@@ -1,21 +1,47 @@
 import { useGameStore } from '../../store/gameStore'
+import { DeskHeader } from './DeskHeader'
+import { HarborWindow } from './HarborWindow'
+import { StatsPanel } from './StatsPanel'
+import { ArrivalReport } from './ArrivalReport'
+import { PortRegulations } from './PortRegulations'
+import { DecisionBar } from './DecisionBar'
 import styles from './InspectionDesk.module.css'
 
 /**
- * Temporary stand-in so "Start shift" has somewhere to go.
- * To be replaced with the Figma inspection desk (harbor view, stats, arrival report, regulations).
+ * The main play screen, laid out in 1440×900 stage units to match Figma.
+ * All content comes from the store, so the game loop only needs to update state.
  */
 export function InspectionDesk() {
-  const day = useGameStore((s) => s.day)
-  const returnToTitle = useGameStore((s) => s.returnToTitle)
+  const shift = useGameStore((s) => s.shift)
+  const stats = useGameStore((s) => s.stats)
+  const report = useGameStore((s) => s.report)
+  const regulations = useGameStore((s) => s.regulations)
+  const decide = useGameStore((s) => s.decide)
 
   return (
     <main className={styles.screen}>
-      <h1 className={styles.day}>Day {day}</h1>
-      <p className={styles.note}>The inspection desk hasn't been built yet.</p>
-      <button type="button" className={styles.back} onClick={returnToTitle}>
-        Back to title
-      </button>
+      <DeskHeader shift={shift} />
+
+      <section className={styles.top}>
+        <HarborWindow vesselNumber={shift.vesselNumber} vesselsToday={shift.vesselsToday} />
+        <StatsPanel stats={stats} />
+      </section>
+
+      <section className={styles.desk}>
+        <span className={styles.bolt} style={{ left: 50 }} aria-hidden="true" />
+        <span className={styles.bolt} style={{ left: 1386 }} aria-hidden="true" />
+
+        <div className={styles.plaque} aria-hidden="true">
+          Port
+          <br />
+          04
+        </div>
+        <div className={styles.gauge} aria-hidden="true" />
+
+        <ArrivalReport report={report} />
+        <PortRegulations shift={shift} regulations={regulations} />
+        <DecisionBar arrivalNo={report.arrivalNo} onDecide={decide} />
+      </section>
     </main>
   )
 }

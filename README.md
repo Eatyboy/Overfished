@@ -68,16 +68,21 @@ Our goal is to help end IUU fishing. Research shows the main bottleneck isn't a 
 
 No backend is needed. The game runs entirely in the browser, and progress can be saved to `localStorage`.
 
-### Planned project structure
+### Project structure
 
 ```
 src/
-  game/         # pure logic: rule checks, report generation, monthly simulation, endings
-  data/         # ships, regulations, per-day rule changes, flavour text
-  components/   # React UI: TitleScreen, InspectionDesk, ArrivalReport, Regulations, StatsPanel
-  store/        # game state (current day, ship queue, stats)
-  assets/       # sprites, fonts, sounds
+  game/           # types now; later pure logic for rule checks, report generation, monthly simulation, endings
+  data/           # content: sample ship, regulations, starting stats (later per-day rule sets)
+  store/          # Zustand game state that the UI reads from
+  components/
+    Stage/          # fixed 1440×900 canvas, scaled to fit the window
+    TitleScreen/    # title screen + animated harbor scene
+    InspectionDesk/ # header, harbor window, stats panel, arrival report, regulations, accept/reject
+    pixel/          # shared pixel-art pieces (boat, ripples, stepped animations)
 ```
+
+The UI is data-driven: every screen reads from the store, so the game loop only has to update state.
 
 ---
 

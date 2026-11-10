@@ -30,7 +30,8 @@ export function Stage({ children }: StageProps) {
     <div className={styles.viewport}>
       <div
         className={styles.stage}
-        style={{ width: STAGE_WIDTH, height: STAGE_HEIGHT, transform: `scale(${scale})` }}
+        style={{ width: STAGE_WIDTH, height: STAGE_HEIGHT, transform: `translate(-50%, -50%) scale(${scale})`,
+        }}
       >
         {children}
       </div>

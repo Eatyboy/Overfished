@@ -1,0 +1,63 @@
+/* Shared look for documents lying on the desk. Coordinates are relative to the desk (stage y 369). */
+
+.paper {
+  position: absolute;
+  top: 14px;
+  height: 412px;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 26px 16px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    inset 0 3px 0 #f1e9cc,
+    5px 6px 0 #3f3226;
+}
+
+/* folded corner */
+.paper::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 14px;
+  height: 14px;
+  background: var(--paper-band);
+  box-shadow: -2px -2px 0 #cfc39b;
+}
+
+.meta {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--paper-muted);
+}
+
+.title {
+  margin: 8px 0 0;
+  padding-bottom: 14px;
+  border-bottom: 3px solid var(--ink);
+  font-family: var(--font-pixel);
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.label {
+  margin: 0 0 8px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--paper-muted);
+}
+
+.footer {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
