@@ -11,11 +11,9 @@ export function TitleScreen() {
 
       <p className={styles.eyebrow}>Group 8 · SYN 100</p>
       <h1 className={styles.title}>Overfished</h1>
-      <p className={styles.subtitle}>A port inspection game</p>
-      <p className={styles.tagline}>Twelve months. One port. Every catch counts.</p>
 
       <button type="button" className={styles.start} onClick={startShift}>
-        Start shift
+        Start
       </button>
 
       <p className={styles.footer}>

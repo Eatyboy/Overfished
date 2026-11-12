@@ -34,12 +34,11 @@ const RIPPLES = makeRipples({
 
 interface HarborWindowProps {
   vesselNumber: number
-  vesselsToday: number
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
-export function HarborWindow({ vesselNumber, vesselsToday }: HarborWindowProps) {
+export function HarborWindow({ vesselNumber }: HarborWindowProps) {
   return (
     <div className={styles.window}>
       <svg
@@ -122,7 +121,7 @@ export function HarborWindow({ vesselNumber, vesselsToday }: HarborWindowProps) 
       </svg>
 
       <p className={styles.vesselTag}>
-        Vessel {pad(vesselNumber)} / {pad(vesselsToday)}
+        Vessel {pad(vesselNumber)}
       </p>
       <p className={styles.plate}>Port entry control</p>
     </div>

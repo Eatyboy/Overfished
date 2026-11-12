@@ -1,6 +1,6 @@
 .regulations {
-  left: 749px;
-  width: 525px;
+  left: 844px;
+  width: 392px;
 }
 
 .band {
@@ -12,13 +12,19 @@
   text-transform: uppercase;
 }
 
+/* Later days list up to 12 rules, so the list scrolls inside the sheet. */
 .rules {
-  margin: 12px 0 0;
-  padding: 0;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  margin: 12px 0 12px;
+  padding: 0 6px 0 0;
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--paper-muted) transparent;
 }
 
 .rule {
@@ -47,8 +53,8 @@
 }
 
 .ruleText {
-  margin: 4px 0 0;
-  font-size: 15px;
+  margin: 3px 0 0;
+  font-size: 13px;
 }
 
 .footer {

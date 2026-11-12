@@ -1,4 +1,5 @@
 import type { Regulation, ShiftInfo } from '../../game/types'
+import { formatDate } from '../../game/date'
 import paper from './Paper.module.css'
 import styles from './PortRegulations.module.css'
 
@@ -16,8 +17,10 @@ export function PortRegulations({ shift, regulations }: PortRegulationsProps) {
       <h2 className={paper.title}>Port Regulations</h2>
 
       <p className={styles.band}>
-        Day {shift.day} &nbsp;/&nbsp; {shift.date} &nbsp;/&nbsp; Order {pad2(shift.order)}
+        Day {shift.day} &nbsp;/&nbsp; {formatDate(shift.date)} &nbsp;/&nbsp; Order {pad2(shift.order)}
       </p>
+
+      {regulations.length === 0 && <p className={styles.ruleText}>No regulations in force today.</p>}
 
       <ol className={styles.rules}>
         {regulations.map((rule, i) => (

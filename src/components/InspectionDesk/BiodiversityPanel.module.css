@@ -1,0 +1,80 @@
+/* Coordinates are relative to the top section (stage y 64). */
+
+.panel {
+  --fill: var(--bar-on);
+
+  position: absolute;
+  left: 792px;
+  top: 16px;
+  width: 615px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 20px;
+  border: 4px solid var(--brown);
+  background: var(--ink);
+  color: var(--cream);
+}
+
+/* At or below the pelagic closure threshold the bar turns red. */
+.low {
+  --fill: var(--red-light);
+}
+
+.labelRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.label {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.value {
+  font-family: var(--font-pixel);
+  font-size: 22px;
+  color: var(--fill);
+}
+
+.bar {
+  display: grid;
+  grid-template-columns: repeat(20, 1fr);
+  gap: 4px;
+  padding: 3px;
+  background: var(--bar-bg);
+}
+
+.on,
+.off {
+  height: 18px;
+}
+
+.on {
+  background: var(--fill);
+  box-shadow: inset 0 -3px 0 rgb(0 0 0 / 0.18);
+}
+
+.off {
+  background: var(--bar-off);
+}
+
+.feedback {
+  display: flex;
+  justify-content: space-between;
+  min-height: 1.4em;
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: pre;
+}
+
+.good {
+  color: var(--bar-on);
+}

@@ -1,8 +1,8 @@
 # Overfished
 
-**A port inspection game about illegal, unreported, and unregulated (IUU) fishing.**
+**A doorman simulator about illegal, unreported, and unregulated (IUU) fishing.**
 
-You're the inspector at a busy fishing port. Ships come in one at a time, each with an arrival report saying what it caught and how. Check every report against the port's current regulations, then **accept** or **reject** the ship. Each decision affects the ocean, the local fishing industry, and what seafood costs, and those effects build up month after month.
+You're the inspector at the Port of San Diego. Ships come in one at a time, each with a fishing report saying what it caught and how, plus its fishing license. Check every report against the port's current regulations, then **accept** or **reject** the ship. Each decision affects the ocean, the local fishing industry, and what seafood costs, and those effects build up month after month.
 
 > Built by Group 8 for SYN 100.
 
@@ -11,38 +11,61 @@ You're the inspector at a busy fishing port. Ships come in one at a time, each w
 ## Gameplay
 
 ### Core loop
-1. A ship arrives and hands over its **fishing report**.
-2. Check the report against the **regulations in force that day**.
+1. A ship arrives and hands over its **fishing report** and **fishing license**.
+2. Check them against the **regulations in force that day**.
 3. **Accept** or **reject** the ship.
 4. Repeat until the shift ends, then a month passes.
 
-The game lasts up to **12 days**. Each day is the first day of a new month. Between days, the game simulates the month using your decisions.
+The game takes place in **2026** and lasts up to **12 days**, one for each month: Day 1 is 1 January 2026 and Day 12 is 1 December 2026. Each day is a timed shift: the clock runs from **9:00 AM to 5:00 PM** in 30-minute steps over **4 real minutes**, and the player inspects as many ships as they can. At 5 PM the ship at the booth is sent away and the day ends. Between days, the game simulates the month using your decisions.
 
 ### Fishing reports
-- Say **what** a ship caught (species, weight, size) and **how** (gear, fishing zone, licence).
+Say **what** a ship caught and **how**. Reports are randomly generated from pools of options:
+
+| Field | Values |
+| --- | --- |
+| Vessel name | "The *Adjective* *Noun*" |
+| Fishing region | One region |
+| Catches | 1–3 entries, each with species, amount, minimum size (in), and the gear used |
+| Bait carried | One bait type, or none |
+
+Species: giant sea bass, red abalone, white shark, skipjack tuna, blue shark, yellowtail, leopard shark, white seabass, ocean salmon, California sheephead, plus the coastal pelagics (anchovy, Pacific sardine, jack mackerel, Pacific mackerel), which are counted by weight.
+
 - Some reports openly show illegal activity.
 - Some reports contain **discrepancies or contradictions** you have to catch.
 
+### Fishing licenses
+Every license has the same fields: **vessel name**, **expiration date**, **license number**, and **permits** (HMS, General Gill/Trammel Net). Licenses always look the same, but what's on the reports changes day by day.
+
 ### Regulations
-- Rules can be **added, changed, or removed** from one day to the next (catch limits, minimum sizes, banned gear, protected zones, and so on).
-- What was legal last month may not be legal today.
+Rules come into force one or two at a time (see `src/data/regulations.ts`). What was legal last month may not be legal today, and seasonal closures depend on the date.
 
-### Stats
-Four stats track the health of the system:
-
-| Stat | Represents |
+| Day (month) | New rule |
 | --- | --- |
-| **Fish Population** | How many fish are left in the fishery |
-| **Marine Ecosystem Health** | Damage from destructive gear, bycatch, protected zones |
-| **Local Fishing Industry** | The livelihoods of legitimate local fishers |
-| **Seafood Affordability** | Supply and price for consumers |
+| 1 (Jan) | Must have fished in San Diego waters |
+| 1 (Jan) | Off limits: giant sea bass, red abalone, white shark |
+| 2 (Feb) | California sheephead: closed Jan–Feb, 13 in minimum |
+| 3 (Mar) | Ocean salmon: closed Oct–Apr, 27 in minimum |
+| 4 (Apr) | White seabass: closed Mar 15 – Jun 15 |
+| 5 (May) | Skipjack tuna and blue shark require an HMS permit |
+| 6 (Jun) | Yellowtail: 28 in minimum |
+| 7 (Jul) | Gill/trammel nets require a permit |
+| 7 (Jul) | Ocean salmon, leopard shark, sheephead, skipjack tuna, blue shark may not be netted |
+| 8 (Aug) | Leopard shark: rod and reel only, 36 in minimum |
+| 9 (Sep) | No tilapia as bait |
+| 10 (Oct) | Coastal pelagics closed while Marine Biodiversity ≤ 30% |
 
-Letting IUU catch through hurts the ocean and undercuts honest fishers. Rejecting too many ships hurts the industry and drives prices up.
+### Marine Biodiversity
+A single **Marine Biodiversity** bar acts as the player's health (tuned in `src/data/start.ts`):
+
+- Starts at **100%**.
+- Each **wrong decision** (accepting a ship that breaks a rule, or rejecting one that doesn't) costs **10%**.
+  A **ticket** pops up explaining what the player should have noticed, or that the vessel was legal.
+- At the **beginning of each new day**, it recovers **20%** (capped at 100%).
+- At or below **30%** the bar turns red, and coastal pelagic fishing closes.
 
 ### Endings
-- **Successful:** all four stats end at stable levels.
-- **Mixed:** nothing collapsed, but some stats are still strained.
-- **Collapse:** a critical system fails (for example, the fish population crashes) and the game ends early.
+- **Collapse:** Marine Biodiversity hits 0% and the game ends early.
+- **Season complete:** the player makes it through all 12 days.
 
 ---
 
@@ -60,11 +83,11 @@ Our goal is to help end IUU fishing. Research shows the main bottleneck isn't a 
 | UI | **React** | The game is mostly documents, panels, and buttons, which suits DOM components better than a canvas engine |
 | Build tool | **Vite** | Fast dev server, zero-config static build |
 | Styling | **CSS Modules** + pixel font | Matches the Figma pixel-art look without fighting a framework |
-| Game state | **Zustand** (or `useReducer`) | Small, simple store for the day, ship queue, stats, and decisions |
+| Game state | **Zustand** (or `useReducer`) | Small, simple store for the day, shift clock, current ship, biodiversity, and decisions |
 | Game logic | Plain TS modules in `src/game/` | Rule checking and the monthly simulation are pure functions, testable without the UI |
 | Content | Data files in `src/data/` | Ships, rules, and day schedules are data, so writers can add content without touching logic |
 | Testing | **Vitest** | Unit tests for rule validation and stat simulation |
-| Hosting | **Vercel** or **GitHub Pages** | Free static hosting with automatic deploys from `main` |
+| Hosting | **GitHub Pages**, **Cloudflare Pages**, or **Vercel** | Free static hosting with automatic deploys from `main` |
 
 No backend is needed. The game runs entirely in the browser, and progress can be saved to `localStorage`.
 
@@ -72,13 +95,14 @@ No backend is needed. The game runs entirely in the browser, and progress can be
 
 ```
 src/
-  game/           # types now; later pure logic for rule checks, report generation, monthly simulation, endings
-  data/           # content: sample ship, regulations, starting stats (later per-day rule sets)
+  game/           # pure logic: types, dates, seeded RNG, ship generation, rule checks, game loop
+  data/           # content: report pools, regulations and rollout, biodiversity tuning, start date
   store/          # Zustand game state that the UI reads from
   components/
     Stage/          # fixed 1440×900 canvas, scaled to fit the window
     TitleScreen/    # title screen + animated harbor scene
-    InspectionDesk/ # header, harbor window, stats panel, arrival report, regulations, accept/reject
+    GameOver/       # collapse / season-complete screen
+    InspectionDesk/ # header, harbor window, biodiversity bar, fishing report, license, regulations, accept/reject
     pixel/          # shared pixel-art pieces (boat, ripples, stepped animations)
 ```
 

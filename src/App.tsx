@@ -1,10 +1,21 @@
 import { Stage } from './components/Stage/Stage'
 import { TitleScreen } from './components/TitleScreen/TitleScreen'
 import { InspectionDesk } from './components/InspectionDesk/InspectionDesk'
+import { GameOver } from './components/GameOver/GameOver'
 import { useGameStore } from './store/gameStore'
 
-export default function App() {
-  const screen = useGameStore((s) => s.screen)
+const SCREENS = {
+  title: TitleScreen,
+  desk: InspectionDesk,
+  gameOver: GameOver,
+}
 
-  return <Stage>{screen === 'title' ? <TitleScreen /> : <InspectionDesk />}</Stage>
+export default function App() {
+  const Screen = SCREENS[useGameStore((s) => s.screen)]
+
+  return (
+    <Stage>
+      <Screen />
+    </Stage>
+  )
 }

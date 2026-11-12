@@ -1,0 +1,34 @@
+/* A smaller card lying between the report and the regulations. */
+.license {
+  left: 572px;
+  top: 40px;
+  width: 250px;
+  height: 340px;
+  padding: 16px 20px 14px;
+}
+
+.title {
+  font-size: 18px;
+  padding-bottom: 10px;
+}
+
+.fields {
+  margin: 12px 0 0;
+}
+
+.fields dt {
+  margin: 10px 0 2px;
+}
+
+.fields dt:first-child {
+  margin-top: 0;
+}
+
+.fields dd {
+  margin: 0;
+  font-size: 15px;
+}
+
+.upper {
+  text-transform: uppercase;
+}

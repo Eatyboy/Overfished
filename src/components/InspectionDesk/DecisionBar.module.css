@@ -12,12 +12,13 @@
   color: var(--cream);
 }
 
+/* aligned with the left edge of the report and the right edge of the regulations */
 .status {
-  left: 168px;
+  left: 80px;
 }
 
 .hint {
-  right: 168px;
+  right: 204px;
   text-align: right;
 }
 

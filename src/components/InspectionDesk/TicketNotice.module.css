@@ -1,0 +1,168 @@
+/* Covers the whole 1440×900 stage. */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  background: rgb(15 24 29 / 0.6);
+}
+
+.ticket {
+  position: relative;
+  width: 600px;
+  padding: 20px 28px 22px;
+  background: #ead7b0;
+  color: var(--ink);
+  border-top: 10px solid var(--red);
+  box-shadow:
+    inset 0 3px 0 #f4e6c6,
+    8px 10px 0 var(--ink);
+  /* chunky two-step pop-in, like a sprite */
+  animation: pop 180ms steps(3, jump-end) both;
+}
+
+/* perforated tear-off edge along the bottom */
+.ticket::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -8px;
+  height: 8px;
+  background: radial-gradient(circle at 8px 0, #ead7b0 6px, transparent 6.5px) 0 0 / 16px 8px repeat-x;
+}
+
+@keyframes pop {
+  from {
+    transform: translateY(24px) scale(0.92);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+.meta {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--paper-muted);
+}
+
+.title {
+  margin: 8px 0 0;
+  padding-bottom: 12px;
+  border-bottom: 3px solid var(--ink);
+  font-family: var(--font-pixel);
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+
+.body {
+  padding: 14px 0 16px;
+}
+
+.summary {
+  margin: 0 0 14px;
+  font-size: 17px;
+}
+
+.vessel {
+  text-transform: uppercase;
+}
+
+.label {
+  margin: 0 0 6px;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--paper-muted);
+}
+
+.issues {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.issues li + li {
+  margin-top: 6px;
+}
+
+.legal {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 14px;
+  border-top: 2px dashed var(--paper-muted);
+}
+
+.penalty {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+
+.button {
+  padding: 10px 22px;
+  border: 0;
+  border-top: 3px solid var(--tan-light);
+  background: var(--tan);
+  font-family: var(--font-pixel);
+  font-size: 14px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow:
+    0 0 0 4px var(--ink),
+    6px 8px 0 4px var(--ink);
+}
+
+.button:active {
+  transform: translate(4px, 5px);
+  box-shadow:
+    0 0 0 4px var(--ink),
+    2px 3px 0 4px var(--ink);
+}
+
+.button:focus-visible {
+  outline: 3px dashed var(--ink);
+  outline-offset: 8px;
+}
+
+/* rubber stamp in the top-right corner */
+.stamp {
+  position: absolute;
+  top: 26px;
+  right: 26px;
+  padding: 6px 12px;
+  border: 3px solid var(--red);
+  font-family: var(--font-pixel);
+  font-size: 14px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--red);
+  opacity: 0.8;
+  transform: rotate(-8deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticket {
+    animation: none;
+  }
+}

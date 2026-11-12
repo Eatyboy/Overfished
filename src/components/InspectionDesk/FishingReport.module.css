@@ -1,17 +1,15 @@
 .report {
-  left: 165px;
-  width: 546px;
+  left: 80px;
+  width: 470px;
 }
 
 .section {
-  padding: 12px 0 10px;
+  padding: 10px 0 9px;
   border-bottom: 1px solid #bfb493;
 }
 
-.columns {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 24px;
+.last {
+  border-bottom: 0;
 }
 
 .value {
@@ -29,13 +27,13 @@
 }
 
 .catch {
-  width: 82%;
+  width: 100%;
   border-collapse: collapse;
-  font-size: 15px;
+  font-size: 13px;
 }
 
 .catch th {
-  padding-bottom: 6px;
+  padding-bottom: 4px;
   font-size: 11px;
   font-weight: 400;
   letter-spacing: 0.06em;
@@ -46,9 +44,18 @@
 
 .catch td {
   padding: 3px 0;
+  vertical-align: top;
 }
 
-.catch th:not(:first-child),
-.catch td:not(:first-child) {
+.catch th + th,
+.catch td + td {
+  padding-left: 12px;
+}
+
+.catch th:nth-child(2),
+.catch td:nth-child(2),
+.catch th:nth-child(3),
+.catch td:nth-child(3) {
   text-align: right;
+  white-space: nowrap;
 }
