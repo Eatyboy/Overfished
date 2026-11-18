@@ -10,10 +10,8 @@ export const START_DATE: GameDate = { year: 2026, month: 1, day: 1 }
 export const BIODIVERSITY = {
   start: 100,
   max: 100,
-  /** Lost for each wrong decision (accepting an illegal ship or rejecting a legal one). */
+  /** Lost for each illegal ship accepted. It does not recover on its own; only Habitat Restoration restores it. */
   wrongPenalty: 10,
-  /** Restored at the beginning of each new day. */
-  dailyRecovery: 20,
 }
 
 export const PORT = {

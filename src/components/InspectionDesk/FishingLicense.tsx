@@ -5,9 +5,11 @@ import styles from './FishingLicense.module.css'
 
 interface FishingLicenseProps {
   license: FishingLicenseData
+  /** From the port's own records, stamped on the card at the booth. */
+  priorViolations: number
 }
 
-export function FishingLicense({ license }: FishingLicenseProps) {
+export function FishingLicense({ license, priorViolations }: FishingLicenseProps) {
   return (
     <article className={`${paper.paper} ${styles.license}`} aria-label="Fishing license">
       <p className={paper.meta}>Commercial Fishing</p>
@@ -20,6 +22,10 @@ export function FishingLicense({ license }: FishingLicenseProps) {
         <dd>{license.licenseNumber}</dd>
         <dt className={paper.label}>Expires</dt>
         <dd>{formatDate(license.expires)}</dd>
+        <dt className={paper.label}>Port record</dt>
+        <dd className={priorViolations > 0 ? styles.flag : undefined}>
+          {priorViolations === 0 ? 'Clean' : `${priorViolations} prior violation${priorViolations > 1 ? 's' : ''}`}
+        </dd>
         <dt className={paper.label}>Permits</dt>
         {license.permits.length === 0 ? (
           <dd>None</dd>

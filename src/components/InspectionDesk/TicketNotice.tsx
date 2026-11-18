@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
 import type { Ticket } from '../../game/types'
 import { BIODIVERSITY } from '../../data/start'
+import { ECONOMY } from '../../data/economy'
+import { useDismiss } from './useDismiss'
 import styles from './TicketNotice.module.css'
 
 interface TicketNoticeProps {
@@ -12,16 +13,7 @@ const pad3 = (n: number) => String(n).padStart(3, '0')
 
 /** Pops up over the desk after a wrong decision, explaining what the player missed. */
 export function TicketNotice({ ticket, onDismiss }: TicketNoticeProps) {
-  const button = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    button.current?.focus()
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onDismiss()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [onDismiss])
+  const button = useDismiss(onDismiss)
 
   const accepted = ticket.decision === 'accept'
 
@@ -55,14 +47,31 @@ export function TicketNotice({ ticket, onDismiss }: TicketNoticeProps) {
                   <li key={issue}>{issue}</li>
                 ))}
               </ul>
+              {ticket.hidden.length > 0 && (
+                <>
+                  <p className={`${styles.label} ${styles.spaced}`}>Its report was falsified. Verification would have shown</p>
+                  <ul className={styles.issues}>
+                    {ticket.hidden.map((line) => (
+                      <li key={line}>{line}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
             </>
           ) : (
-            <p className={styles.legal}>This vessel was legal. It met every regulation in force today.</p>
+            <p className={styles.legal}>
+              This vessel was legal. It met every regulation in force today, and the fishing industry has filed a
+              complaint.
+            </p>
           )}
         </div>
 
         <footer className={styles.footer}>
-          <span className={styles.penalty}>Marine Biodiversity −{BIODIVERSITY.wrongPenalty}%</span>
+          <span className={styles.penalty}>
+            {accepted
+              ? `Marine Biodiversity −${BIODIVERSITY.wrongPenalty}%`
+              : `Industry complaint −$${ECONOMY.wrongRejectFine}`}
+          </span>
           <button ref={button} type="button" className={styles.button} onClick={onDismiss}>
             Understood
           </button>

@@ -42,10 +42,26 @@ export interface FishingLicense {
   permits: Permit[]
 }
 
-/** Everything a ship presents at the booth. */
-export interface Ship {
+/** A fishing report and license together: what regulations are checked against. */
+export interface Documents {
   report: FishingReport
   license: FishingLicense
+}
+
+/** A verification tool. Each reveals one part of what the vessel really did. */
+export type Tool = 'tracking' | 'catch' | 'license'
+
+/**
+ * Everything a ship presents at the booth (`report`, `license`), plus what it really did (`actual`).
+ * Honest ships present their actual documents. Regulations are judged against `actual`.
+ */
+export interface Ship extends Documents {
+  /** The vessel's real fishing activity and license record. Hidden until verified. */
+  actual: Documents
+  /** Tools that would expose a lie hiding a violation. Empty for honest ships. */
+  lies: Tool[]
+  /** Violations on the port's record for this vessel: a free, imperfect risk signal. */
+  priorViolations: number
 }
 
 /** What a regulation can see when it checks a ship. */
@@ -61,7 +77,7 @@ export interface Regulation {
   title: string
   description: string
   /** Null if the ship complies; otherwise a short explanation of what breaks the rule. */
-  findIssue: (ship: Ship, ctx: InspectionContext) => string | null
+  findIssue: (docs: Documents, ctx: InspectionContext) => string | null
 }
 
 /** Facts about the current shift shown in the header and on documents. */
@@ -78,8 +94,8 @@ export interface ShiftInfo {
 
 export type Decision = 'accept' | 'reject'
 
-/** How the game ended: biodiversity hit 0, or the player made it through every day. */
-export type Outcome = 'collapse' | 'complete'
+/** How the game ended: biodiversity hit 0, the port ran out of money, or the player made it through every day. */
+export type Outcome = 'collapse' | 'bankrupt' | 'complete'
 
 /** Issued on a wrong decision: what the player should have noticed. */
 export interface Ticket {
@@ -88,4 +104,22 @@ export interface Ticket {
   decision: Decision
   /** Rule breaches the player missed. Empty if the vessel was legal and was wrongly rejected. */
   issues: string[]
+  /** For falsified reports: what each verification tool would have revealed. */
+  hidden: string[]
+}
+
+/** Upgrades sold in the end-of-day shop. */
+export type ShopItem = 'catch' | 'license' | 'inspector' | 'habitat'
+
+/** Money and decisions for one day, shown on the end-of-day summary. */
+export interface DayLog {
+  accepted: number
+  rejected: number
+  mistakes: number
+  revenue: number
+  fines: number
+  inspectionFees: number
+  /** Operating expense paid at the end of the day (0 until then). */
+  expense: number
+  biodiversityStart: number
 }

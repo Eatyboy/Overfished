@@ -6,7 +6,8 @@ import { findViolations, regulationsForDay } from './regulations'
 import { FISHING_REGIONS, SPECIES, SPECIES_NAMES } from '../data/pools'
 import { DAY_REGULATIONS, RULES } from '../data/regulations'
 import { START_DATE, TOTAL_DAYS } from '../data/start'
-import type { CatchEntry, FishingLicense, FishingReport, InspectionContext, Regulation, Ship } from './types'
+import { FALSIFIED_REPORTS } from '../data/economy'
+import type { CatchEntry, Documents, FishingLicense, FishingReport, InspectionContext, Regulation } from './types'
 
 // ---- helpers ----
 
@@ -18,7 +19,7 @@ const fish = (species: string, sizeIn = 30, gear = 'Hook and Line'): CatchEntry 
   gear,
 })
 
-function makeShip(report: Partial<FishingReport> = {}, license: Partial<FishingLicense> = {}): Ship {
+function makeShip(report: Partial<FishingReport> = {}, license: Partial<FishingLicense> = {}): Documents {
   return {
     report: {
       arrivalNo: 1,
@@ -89,7 +90,7 @@ describe('regulations', () => {
     expect(passes(RULES.offLimits, [fish('Blue Shark')])).toBe(true)
   })
 
-  it('closes ocean salmon October–April and requires 27 in', () => {
+  it('opens ocean salmon May–September and requires 27 in', () => {
     expect(passes(RULES.oceanSalmon, [fish('Ocean Salmon', 30)], on(5))).toBe(true)
     expect(passes(RULES.oceanSalmon, [fish('Ocean Salmon', 26)], on(5))).toBe(false)
     expect(passes(RULES.oceanSalmon, [fish('Ocean Salmon', 30)], on(4))).toBe(false)
@@ -97,13 +98,13 @@ describe('regulations', () => {
     expect(passes(RULES.oceanSalmon, [fish('Ocean Salmon', 30)], on(1))).toBe(false)
   })
 
-  it('closes sheephead January–February and requires 13 in', () => {
-    expect(passes(RULES.sheephead, [fish('California Sheephead', 14)], on(3))).toBe(true)
-    expect(passes(RULES.sheephead, [fish('California Sheephead', 12)], on(3))).toBe(false)
-    expect(passes(RULES.sheephead, [fish('California Sheephead', 14)], on(2))).toBe(false)
+  it('opens sheepshead March–December and requires 13 in', () => {
+    expect(passes(RULES.sheepshead, [fish('California Sheepshead', 14)], on(3))).toBe(true)
+    expect(passes(RULES.sheepshead, [fish('California Sheepshead', 12)], on(3))).toBe(false)
+    expect(passes(RULES.sheepshead, [fish('California Sheepshead', 14)], on(2))).toBe(false)
   })
 
-  it('closes white seabass March 15 – June 15', () => {
+  it('opens white seabass June 16 – March 14', () => {
     const seabass = [fish('White Seabass')]
     expect(passes(RULES.whiteSeabass, seabass, on(3, 14))).toBe(true)
     expect(passes(RULES.whiteSeabass, seabass, on(3, 15))).toBe(false)
@@ -132,7 +133,7 @@ describe('regulations', () => {
 
   it('forbids netting certain species even with a permit', () => {
     const permit = { permits: ['General Gill/Trammel Net' as const] }
-    expect(passes(RULES.noNetSpecies, [fish('California Sheephead', 14, 'Trammel Net')], on(7), {}, permit)).toBe(false)
+    expect(passes(RULES.noNetSpecies, [fish('California Sheepshead', 14, 'Trammel Net')], on(7), {}, permit)).toBe(false)
     expect(passes(RULES.noNetSpecies, [fish('White Seabass', 30, 'Gill Net')], on(7), {}, permit)).toBe(true)
   })
 
@@ -168,7 +169,9 @@ describe('issue explanations', () => {
   })
 
   it('distinguish a closed season from an undersized fish', () => {
-    expect(issueFor(RULES.oceanSalmon, [fish('Ocean Salmon', 30)], on(1))).toMatch(/season is closed/)
+    expect(issueFor(RULES.oceanSalmon, [fish('Ocean Salmon', 30)], on(1))).toBe(
+      'Ocean Salmon fishing season is May – September, but the catch includes ocean salmon.',
+    )
     expect(issueFor(RULES.oceanSalmon, [fish('Ocean Salmon', 22)], on(6))).toBe(
       'Ocean Salmon as small as 22 in; the minimum is 27 in.',
     )
@@ -209,7 +212,7 @@ describe('generateShip', () => {
     const ctx = { date, biodiversity: 100 }
     const regulations = regulationsForDay(day)
     const ships = Array.from({ length: 200 }, (_, i) =>
-      generateShip(mulberry32(i), { arrivalNo: i + 1, regulations, ctx }),
+      generateShip(mulberry32(i), { arrivalNo: i + 1, day, regulations, ctx }),
     )
 
     it(`follows the report and license parameters (day ${day})`, () => {
@@ -232,14 +235,79 @@ describe('generateShip', () => {
     })
 
     it(`mixes legal and illegal ships roughly evenly (day ${day})`, () => {
-      const legal = ships.filter((s) => findViolations(s, regulations, ctx).length === 0).length
+      const legal = ships.filter((s) => findViolations(s.actual, regulations, ctx).length === 0).length
       expect(legal).toBeGreaterThan(60)
       expect(legal).toBeLessThan(140)
     })
   }
 
   it('is deterministic for a seed', () => {
-    const opts = { arrivalNo: 1, regulations: regulationsForDay(1), ctx: { date: START_DATE, biodiversity: 100 } }
+    const opts = { arrivalNo: 1, day: 1, regulations: regulationsForDay(1), ctx: { date: START_DATE, biodiversity: 100 } }
     expect(generateShip(mulberry32(42), opts)).toEqual(generateShip(mulberry32(42), opts))
+  })
+})
+
+// ---- falsified reports ----
+
+describe('falsified reports', () => {
+  const shipsOn = (day: number, n = 400) => {
+    const ctx = { date: dateOfDay(START_DATE, day), biodiversity: 100 }
+    const regulations = regulationsForDay(day)
+    const ships = Array.from({ length: n }, (_, i) => generateShip(mulberry32(1000 + i), { arrivalNo: 1, day, regulations, ctx }))
+    return { ships, regulations, ctx }
+  }
+
+  it('never happen before day 4: every report is the truth', () => {
+    for (const day of [1, 2, 3]) {
+      for (const ship of shipsOn(day, 100).ships) {
+        expect(ship.lies).toEqual([])
+        expect(ship.actual).toEqual({ report: ship.report, license: ship.license })
+      }
+    }
+  })
+
+  it('make an illegal vessel look legal on paper, and only use lies unlocked by that day', () => {
+    for (const day of [4, 6, 9, 12]) {
+      const { ships, regulations, ctx } = shipsOn(day)
+      const liars = ships.filter((s) => s.lies.length > 0)
+      expect(liars.length).toBeGreaterThan(20)
+      for (const s of liars) {
+        expect(findViolations(s, regulations, ctx)).toEqual([])
+        expect(findViolations(s.actual, regulations, ctx).length).toBeGreaterThan(0)
+        for (const lie of s.lies) expect(day).toBeGreaterThanOrEqual(FALSIFIED_REPORTS.lieFromDay[lie])
+      }
+    }
+  })
+
+  it('leave evidence for the tool that exposes each lie', () => {
+    const { ships } = shipsOn(12)
+    for (const s of ships.filter((s) => s.lies.length > 0)) {
+      if (s.lies.includes('tracking')) expect(s.actual.report.fishingRegion).not.toBe(s.report.fishingRegion)
+      if (s.lies.includes('catch')) expect(s.actual.report).not.toEqual(s.report)
+      if (s.lies.includes('license')) expect(s.actual.license.permits).not.toEqual(s.license.permits)
+    }
+  })
+
+  it('include harmless mismatches on legal vessels', () => {
+    const { ships, regulations, ctx } = shipsOn(6)
+    const innocent = ships.filter(
+      (s) => s.lies.length === 0 && findViolations(s.actual, regulations, ctx).length === 0 && s.actual.report !== s.report,
+    )
+    expect(innocent.length).toBeGreaterThan(5)
+  })
+
+  it('flag liars with prior violations more often than honest vessels', () => {
+    const { ships } = shipsOn(12, 600)
+    const rate = (list: typeof ships) => list.filter((s) => s.priorViolations > 0).length / list.length
+    expect(rate(ships.filter((s) => s.lies.length > 0))).toBeGreaterThan(rate(ships.filter((s) => s.lies.length === 0)) + 0.2)
+  })
+
+  it('can force the guided example: a report hiding where the vessel fished', () => {
+    const day = 4
+    const ctx = { date: dateOfDay(START_DATE, day), biodiversity: 100 }
+    for (let i = 0; i < 20; i++) {
+      const s = generateShip(mulberry32(i), { arrivalNo: 1, day, regulations: regulationsForDay(day), ctx, requireLie: 'tracking' })
+      expect(s.lies).toEqual(['tracking'])
+    }
   })
 })

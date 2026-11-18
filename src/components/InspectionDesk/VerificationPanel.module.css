@@ -1,0 +1,110 @@
+/* Coordinates are relative to the top section (stage y 64). Sits under the biodiversity panel. */
+
+.panel {
+  position: absolute;
+  left: 792px;
+  top: 152px;
+  width: 615px;
+  height: 129px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 20px;
+  border: 4px solid var(--brown);
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.budget,
+.quota {
+  margin: 0;
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.money,
+.negative {
+  margin-left: 8px;
+  font-family: var(--font-pixel);
+  font-size: 22px;
+  color: var(--bar-on);
+}
+
+.negative {
+  color: var(--red-light);
+}
+
+.quota {
+  opacity: 0.85;
+}
+
+.tools {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.tool {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 7px 8px 6px;
+  border: 0;
+  border-top: 3px solid var(--tan-light);
+  background: var(--tan);
+  color: var(--ink);
+  font-family: var(--font-pixel);
+  cursor: pointer;
+  box-shadow: 0 0 0 3px var(--brown);
+}
+
+.tool:hover:not(:disabled) {
+  background: var(--tan-light);
+}
+
+.tool:active:not(:disabled) {
+  transform: translate(2px, 3px);
+}
+
+.tool:focus-visible {
+  outline: 3px dashed var(--cream);
+  outline-offset: 5px;
+}
+
+.tool:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.done {
+  background: var(--teal);
+  border-top-color: var(--teal);
+  color: var(--cream);
+}
+
+.done:hover:not(:disabled) {
+  background: var(--teal);
+  filter: brightness(1.15);
+}
+
+.action {
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.sub {
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
