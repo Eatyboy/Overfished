@@ -1,23 +1,43 @@
-import type { Decision, Outcome, Regulation, ShiftInfo, Ship, Ticket } from './types'
+import type { DayLog, Decision, Outcome, Regulation, ShiftInfo, Ship, ShopItem, Ticket, Tool } from './types'
 import { isShiftOver } from './clock'
 import { dateOfDay } from './date'
+import { revealedBy } from './evidence'
 import { generateShip } from './generateShip'
 import type { Rng } from './random'
 import { findIssues, regulationsForDay } from './regulations'
 import { BIODIVERSITY, PORT, START_DATE, TOTAL_DAYS } from '../data/start'
+import { ECONOMY, FALSIFIED_REPORTS, HABITAT_RECOVERY_PER_LEVEL, SHOP } from '../data/economy'
+
+/** `shift` while inspecting; `summary` for the end-of-day ledger and shop. */
+export type Phase = 'shift' | 'summary'
 
 /** Everything that changes as the game is played. */
 export interface Progress {
   shift: ShiftInfo
+  phase: Phase
   /** Real milliseconds played so far in today's shift. */
   elapsedMs: number
   biodiversity: number
+  /** The port's operating budget, in dollars. */
+  money: number
   ship: Ship
   regulations: Regulation[]
-  /** True from the start of day 2+ until the first decision, to show the daily recovery. */
+  /** Shop purchases so far. */
+  owned: Record<ShopItem, number>
+  /** Inspections used today (free ones first, then paid). */
+  inspectionsUsed: number
+  /** Tools already used on the ship at the booth; their evidence can be reopened for free. */
+  inspected: Tool[]
+  /** Evidence currently open, or null. */
+  viewing: Tool | null
+  /** Show the Port Authority bulletin about falsified reports (start of Day 4). */
+  bulletin: boolean
+  /** True from the start of day 2+ until the first decision, to show habitat recovery. */
   newDay: boolean
   /** Shown after a wrong decision until the player dismisses it. */
   ticket: Ticket | null
+  /** Today's money and decisions. */
+  log: DayLog
   /** Set once the game is over. */
   outcome: Outcome | null
 }
@@ -35,19 +55,61 @@ export function shiftForDay(day: number): ShiftInfo {
 
 const clamp = (n: number) => Math.max(0, Math.min(BIODIVERSITY.max, n))
 
-/** A decision is correct if it accepts a ship that breaks no rule, or rejects one that breaks any. */
+const emptyLog = (biodiversity: number): DayLog => ({
+  accepted: 0,
+  rejected: 0,
+  mistakes: 0,
+  revenue: 0,
+  fines: 0,
+  inspectionFees: 0,
+  expense: 0,
+  biodiversityStart: biodiversity,
+})
+
+/** Whether the player can use a verification tool. Vessel Tracking is issued with the Day 4 bulletin. */
+export function hasTool(p: Pick<Progress, 'shift' | 'owned'>, tool: Tool): boolean {
+  return tool === 'tracking' ? p.shift.day >= FALSIFIED_REPORTS.startDay : p.owned[tool] > 0
+}
+
+export function freeInspections(p: Pick<Progress, 'owned'>): number {
+  return p.owned.inspector > 0 ? ECONOMY.inspectorFreeInspections : ECONOMY.freeInspections
+}
+
+/** What the next inspection costs. */
+export function inspectionCost(p: Pick<Progress, 'owned' | 'inspectionsUsed'>): number {
+  return p.inspectionsUsed < freeInspections(p) ? 0 : ECONOMY.inspectionCost
+}
+
+/** Biodiversity restored at the start of each day by Habitat Restoration. */
+export function habitatRecovery(p: Pick<Progress, 'owned'>): number {
+  return p.owned.habitat * HABITAT_RECOVERY_PER_LEVEL
+}
+
+/** True if the vessel's actual activity breaks no rule. */
+export function isLegal(ship: Ship, regulations: Regulation[], ctx: { date: ShiftInfo['date']; biodiversity: number }): boolean {
+  return findIssues(ship.actual, regulations, ctx).length === 0
+}
+
+/** A decision is correct if it accepts a ship that really broke no rule, or rejects one that broke any. */
 export function isCorrectDecision(
   ship: Ship,
   decision: Decision,
   regulations: Regulation[],
   ctx: { date: ShiftInfo['date']; biodiversity: number },
 ): boolean {
-  const legal = findIssues(ship, regulations, ctx).length === 0
-  return legal === (decision === 'accept')
+  return isLegal(ship, regulations, ctx) === (decision === 'accept')
 }
 
 function nextShip(rand: Rng, arrivalNo: number, shift: ShiftInfo, regulations: Regulation[], biodiversity: number) {
-  return generateShip(rand, { arrivalNo, regulations, ctx: { date: shift.date, biodiversity } })
+  // The first vessel after the Day 4 bulletin is the guided example: a report hiding where it fished.
+  const guided = shift.day === FALSIFIED_REPORTS.startDay && shift.vesselNumber === 1
+  return generateShip(rand, {
+    arrivalNo,
+    day: shift.day,
+    regulations,
+    ctx: { date: shift.date, biodiversity },
+    requireLie: guided ? 'tracking' : undefined,
+  })
 }
 
 export function newGame(rand: Rng): Progress {
@@ -56,32 +118,81 @@ export function newGame(rand: Rng): Progress {
   const biodiversity = BIODIVERSITY.start
   return {
     shift,
+    phase: 'shift',
     elapsedMs: 0,
     biodiversity,
+    money: ECONOMY.startMoney,
     regulations,
     ship: nextShip(rand, 1, shift, regulations, biodiversity),
+    owned: { catch: 0, license: 0, inspector: 0, habitat: 0 },
+    inspectionsUsed: 0,
+    inspected: [],
+    viewing: null,
+    bulletin: false,
     newDay: false,
     ticket: null,
+    log: emptyLog(biodiversity),
     outcome: null,
   }
 }
 
 /**
+ * Use a verification tool on the ship at the booth and open its evidence.
+ * Reopening evidence already gathered is free. Does nothing if the tool is locked or unaffordable.
+ */
+export function inspect(p: Progress, tool: Tool): Progress {
+  if (p.outcome || p.phase !== 'shift' || !hasTool(p, tool)) return p
+  if (p.inspected.includes(tool)) return { ...p, viewing: tool }
+  const cost = inspectionCost(p)
+  if (p.money < cost) return p
+  return {
+    ...p,
+    money: p.money - cost,
+    inspectionsUsed: p.inspectionsUsed + 1,
+    inspected: [...p.inspected, tool],
+    viewing: tool,
+    log: { ...p.log, inspectionFees: p.log.inspectionFees + cost },
+  }
+}
+
+/**
  * Score a decision on the current ship and bring in the next one.
- * A wrong decision costs biodiversity and issues a ticket.
+ * Accepting earns port fees; accepting an illegal ship also costs biodiversity.
+ * Rejecting a legal ship draws an industry complaint fine. Wrong decisions issue a ticket.
  */
 export function resolveDecision(p: Progress, decision: Decision, rand: Rng): Progress {
-  if (p.outcome) return p
+  if (p.outcome || p.phase !== 'shift') return p
 
-  const issues = findIssues(p.ship, p.regulations, { date: p.shift.date, biodiversity: p.biodiversity })
-  const correct = (issues.length === 0) === (decision === 'accept')
+  const ctx = { date: p.shift.date, biodiversity: p.biodiversity }
+  const issues = findIssues(p.ship.actual, p.regulations, ctx)
+  const legal = issues.length === 0
+  const accept = decision === 'accept'
+  const correct = legal === accept
+
+  const revenue = accept ? ECONOMY.acceptRevenue : 0
+  const fine = !accept && legal ? ECONOMY.wrongRejectFine : 0
+  const biodiversity = accept && !legal ? clamp(p.biodiversity - BIODIVERSITY.wrongPenalty) : p.biodiversity
   const ticket: Ticket | null = correct
     ? null
-    : { arrivalNo: p.ship.report.arrivalNo, vesselName: p.ship.report.vesselName, decision, issues }
-  const biodiversity = correct ? p.biodiversity : clamp(p.biodiversity - BIODIVERSITY.wrongPenalty)
+    : {
+        arrivalNo: p.ship.report.arrivalNo,
+        vesselName: p.ship.report.vesselName,
+        decision,
+        issues,
+        hidden: p.ship.lies.map((tool) => revealedBy(p.ship, tool)),
+      }
+  const log: DayLog = {
+    ...p.log,
+    accepted: p.log.accepted + (accept ? 1 : 0),
+    rejected: p.log.rejected + (accept ? 0 : 1),
+    mistakes: p.log.mistakes + (correct ? 0 : 1),
+    revenue: p.log.revenue + revenue,
+    fines: p.log.fines + fine,
+  }
+  const money = p.money + revenue - fine
 
   if (biodiversity <= 0) {
-    return { ...p, biodiversity: 0, newDay: false, ticket, outcome: 'collapse' }
+    return { ...p, biodiversity: 0, money, log, newDay: false, viewing: null, ticket, outcome: 'collapse' }
   }
 
   const shift = { ...p.shift, vesselNumber: p.shift.vesselNumber + 1 }
@@ -89,35 +200,66 @@ export function resolveDecision(p: Progress, decision: Decision, rand: Rng): Pro
     ...p,
     shift,
     biodiversity,
+    money,
+    log,
     ship: nextShip(rand, p.ship.report.arrivalNo + 1, shift, p.regulations, biodiversity),
+    inspected: [],
+    viewing: null,
     newDay: false,
     ticket,
   }
 }
 
 /**
- * Advance the shift clock. When the shift ends at 5 PM the ship at the booth is sent away
- * undecided and the next day begins (restoring biodiversity), or the game is complete.
+ * Advance the shift clock. At 5 PM the ship at the booth is sent away and the port pays its
+ * operating expense. If it can't, the port is shut down; otherwise the day's summary and shop open
+ * (or the game is complete after the last day).
  */
-export function advanceTime(p: Progress, ms: number, rand: Rng): Progress {
-  if (p.outcome) return p
+export function advanceTime(p: Progress, ms: number): Progress {
+  if (p.outcome || p.phase !== 'shift') return p
 
   const elapsedMs = p.elapsedMs + ms
   if (!isShiftOver(elapsedMs)) return { ...p, elapsedMs }
 
-  if (p.shift.day >= TOTAL_DAYS) return { ...p, elapsedMs, outcome: 'complete' }
+  const closed = { ...p, elapsedMs, viewing: null, ticket: null, bulletin: false }
+  const expense = ECONOMY.operatingExpense
+  if (p.money < expense) return { ...closed, outcome: 'bankrupt' }
 
+  const ended = { ...closed, money: p.money - expense, log: { ...p.log, expense } }
+  if (p.shift.day >= TOTAL_DAYS) return { ...ended, outcome: 'complete' }
+  return { ...ended, phase: 'summary' }
+}
+
+/** Buy a shop item during the end-of-day summary. Does nothing if unavailable or unaffordable. */
+export function buy(p: Progress, item: ShopItem): Progress {
+  const def = SHOP.find((d) => d.id === item)
+  if (!def || p.phase !== 'summary' || p.outcome) return p
+  const owned = p.owned[item]
+  const price = def.price(owned)
+  if (owned >= def.max || p.shift.day < def.fromDay || p.money < price) return p
+  return { ...p, money: p.money - price, owned: { ...p.owned, [item]: owned + 1 } }
+}
+
+/** Leave the summary and start the next day's shift, restoring biodiversity by Habitat Restoration. */
+export function startNextDay(p: Progress, rand: Rng): Progress {
+  if (p.outcome || p.phase !== 'summary') return p
   const shift = shiftForDay(p.shift.day + 1)
   const regulations = regulationsForDay(shift.day)
-  const biodiversity = clamp(p.biodiversity + BIODIVERSITY.dailyRecovery)
+  const biodiversity = clamp(p.biodiversity + habitatRecovery(p))
   return {
     ...p,
+    phase: 'shift',
     shift,
     elapsedMs: 0,
     biodiversity,
     regulations,
     ship: nextShip(rand, p.ship.report.arrivalNo + 1, shift, regulations, biodiversity),
+    inspectionsUsed: 0,
+    inspected: [],
+    viewing: null,
+    bulletin: shift.day === FALSIFIED_REPORTS.startDay,
     newDay: true,
     ticket: null,
+    log: emptyLog(biodiversity),
   }
 }

@@ -7,6 +7,10 @@ const COPY = {
     title: 'Collapse',
     body: 'Too much illegal catch slipped through. Marine biodiversity has collapsed and the fishery is closed.',
   },
+  bankrupt: {
+    title: 'Port closed',
+    body: "The port couldn't cover its operating costs and has been shut down. With no inspectors at the docks, illegal catch lands unchecked.",
+  },
   complete: {
     title: 'Season complete',
     body: 'You made it through twelve months at the port.',
@@ -17,16 +21,17 @@ export function GameOver() {
   const outcome = useGameStore((s) => s.outcome) ?? 'complete'
   const biodiversity = useGameStore((s) => s.biodiversity)
   const shift = useGameStore((s) => s.shift)
+  const money = useGameStore((s) => s.money)
   const startShift = useGameStore((s) => s.startShift)
   const returnToTitle = useGameStore((s) => s.returnToTitle)
   const copy = COPY[outcome]
 
   return (
-    <main className={`${styles.screen} ${outcome === 'collapse' ? styles.collapse : ''}`}>
+    <main className={`${styles.screen} ${outcome === 'complete' ? '' : styles.collapse}`}>
       <h1 className={styles.title}>{copy.title}</h1>
       <p className={styles.body}>{copy.body}</p>
       <p className={styles.stats}>
-        Day {shift.day} &nbsp;/&nbsp; {formatDate(shift.date)} &nbsp;/&nbsp; Marine biodiversity {Math.round(biodiversity)}%
+        Day {shift.day} &nbsp;/&nbsp; {formatDate(shift.date)} &nbsp;/&nbsp; Marine biodiversity {Math.round(biodiversity)}% &nbsp;/&nbsp; Port budget ${money}
       </p>
 
       <div className={styles.actions}>

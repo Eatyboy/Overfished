@@ -1,4 +1,4 @@
-import type { CatchEntry, GameDate, Regulation, Ship } from '../game/types'
+import type { CatchEntry, Documents, GameDate, Regulation } from '../game/types'
 import {
   COASTAL_PELAGICS,
   FISHING_REGIONS,
@@ -13,10 +13,10 @@ export const PELAGIC_CLOSURE_THRESHOLD = 30
 const SAN_DIEGO_REGIONS = FISHING_REGIONS.filter((r) => r.sanDiego).map((r) => r.name)
 const OFF_LIMITS: readonly string[] = [S.giantSeaBass, S.redAbalone, S.whiteShark]
 const HMS_SPECIES: readonly string[] = [S.skipjackTuna, S.blueShark]
-const NO_NET_SPECIES: readonly string[] = [S.oceanSalmon, S.leopardShark, S.sheephead, S.skipjackTuna, S.blueShark]
+const NO_NET_SPECIES: readonly string[] = [S.oceanSalmon, S.leopardShark, S.sheepshead, S.skipjackTuna, S.blueShark]
 
-const catchesOf = (ship: Ship, species: string): CatchEntry[] =>
-  ship.report.catches.filter((c) => c.species === species)
+const catchesOf = (docs: Documents, species: string): CatchEntry[] =>
+  docs.report.catches.filter((c) => c.species === species)
 
 /** True if `date` falls in a [month, day] window, inclusive. Windows may wrap past December. */
 function inWindow(date: GameDate, from: [number, number], to: [number, number]): boolean {
@@ -32,18 +32,18 @@ const list = (items: string[]) =>
 
 const lower = (species: string) => species.toLowerCase()
 
-/** Size and season issues shared by the seasonal species rules. */
+/** Size and season issues shared by the seasonal species rules. `open` is the fishing season. */
 function seasonalIssue(
-  ship: Ship,
+  docs: Documents,
   date: GameDate,
   species: string,
-  closed: [[number, number], [number, number]],
-  closedText: string,
+  open: [[number, number], [number, number]],
+  openText: string,
   minIn: number,
 ): string | null {
-  const caught = catchesOf(ship, species)
+  const caught = catchesOf(docs, species)
   if (caught.length === 0) return null
-  if (inWindow(date, ...closed)) return `${species} season is closed ${closedText}, but the report lists ${lower(species)}.`
+  if (!inWindow(date, ...open)) return `${species} fishing season is ${openText}, but the catch includes ${lower(species)}.`
   const small = caught.find((c) => c.sizeIn < minIn)
   return small ? `${species} as small as ${small.sizeIn} in; the minimum is ${minIn} in.` : null
 }
@@ -71,16 +71,16 @@ export const RULES = {
   oceanSalmon: {
     id: 'ocean-salmon',
     title: 'Ocean salmon',
-    description: 'Closed October–April. Minimum 27 in when open.',
-    findIssue: (ship, { date }) =>
-      seasonalIssue(ship, date, S.oceanSalmon, [[10, 1], [4, 30]], 'October–April', 27),
+    description: 'Fishing season: May – September. Minimum 27 in.',
+    findIssue: (docs, { date }) =>
+      seasonalIssue(docs, date, S.oceanSalmon, [[5, 1], [9, 30]], 'May – September', 27),
   },
-  sheephead: {
-    id: 'sheephead',
-    title: 'California sheephead',
-    description: 'Closed January–February. Minimum 13 in when open.',
-    findIssue: (ship, { date }) =>
-      seasonalIssue(ship, date, S.sheephead, [[1, 1], [2, 31]], 'January–February', 13),
+  sheepshead: {
+    id: 'sheepshead',
+    title: 'California sheepshead',
+    description: 'Fishing season: March – December. Minimum 13 in.',
+    findIssue: (docs, { date }) =>
+      seasonalIssue(docs, date, S.sheepshead, [[3, 1], [12, 31]], 'March – December', 13),
   },
   hmsPermit: {
     id: 'hms-permit',
@@ -96,18 +96,18 @@ export const RULES = {
     id: 'yellowtail-size',
     title: 'Yellowtail size',
     description: 'Minimum 28 in. No allowance for smaller fish.',
-    findIssue: (ship) => {
-      const small = catchesOf(ship, S.yellowtail).find((c) => c.sizeIn < 28)
+    findIssue: (docs) => {
+      const small = catchesOf(docs, S.yellowtail).find((c) => c.sizeIn < 28)
       return small ? `Yellowtail as small as ${small.sizeIn} in; the minimum is 28 in.` : null
     },
   },
   whiteSeabass: {
     id: 'white-seabass',
     title: 'White seabass season',
-    description: 'Closed March 15 – June 15.',
-    findIssue: (ship, { date }) =>
-      catchesOf(ship, S.whiteSeabass).length > 0 && inWindow(date, [3, 15], [6, 15])
-        ? 'White seabass season is closed March 15 – June 15, but the report lists white seabass.'
+    description: 'Fishing season: June 16 – March 14.',
+    findIssue: (docs, { date }) =>
+      catchesOf(docs, S.whiteSeabass).length > 0 && !inWindow(date, [6, 16], [3, 14])
+        ? 'White seabass fishing season is June 16 – March 14, but the catch includes white seabass.'
         : null,
   },
   netPermit: {
@@ -123,7 +123,7 @@ export const RULES = {
   noNetSpecies: {
     id: 'no-net-species',
     title: 'No-net species',
-    description: 'Ocean salmon, leopard shark, sheephead, skipjack tuna and blue shark may not be netted.',
+    description: 'Ocean salmon, leopard shark, sheepshead, skipjack tuna and blue shark may not be netted.',
     findIssue: ({ report }) => {
       const c = report.catches.find((c) => NO_NET_SPECIES.includes(c.species) && GILL_TRAMMEL_NETS.includes(c.gear))
       return c ? `${c.species} was caught with a ${lower(c.gear)}, and it may not be netted.` : null
@@ -133,8 +133,8 @@ export const RULES = {
     id: 'leopard-shark',
     title: 'Leopard shark',
     description: 'Rod and reel only. Minimum 36 in.',
-    findIssue: (ship) => {
-      const caught = catchesOf(ship, S.leopardShark)
+    findIssue: (docs) => {
+      const caught = catchesOf(docs, S.leopardShark)
       const wrongGear = caught.find((c) => c.gear !== ROD_AND_REEL)
       if (wrongGear) return `Leopard shark was caught with ${lower(wrongGear.gear)}; only rod and reel is allowed.`
       const small = caught.find((c) => c.sizeIn < 36)
@@ -169,12 +169,12 @@ export const STATIC_REGULATIONS: Regulation[] = []
 /*
  * Rules in force each day (1–12). Each entry is that day's full set, so a rule can be dropped later.
  * Default rollout: one or two new rules a day. Seasonal rules come in while their closures still
- * have something to bite on (Day N = month N of 2026; sheephead closed day 2, salmon days 3–4
+ * have something to bite on (Day N = month N of 2026; sheepshead out of season day 2, salmon days 3–4
  * and 10–12, white seabass days 4–6).
  */
 const ROLLOUT: Regulation[][] = [
   [R.sanDiegoWaters, R.offLimits], // 1  Jan
-  [R.sheephead], //                   2  Feb
+  [R.sheepshead], //                   2  Feb
   [R.oceanSalmon], //                 3  Mar
   [R.whiteSeabass], //                4  Apr
   [R.hmsPermit], //                   5  May

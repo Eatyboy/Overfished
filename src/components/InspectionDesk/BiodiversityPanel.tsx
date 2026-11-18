@@ -1,4 +1,3 @@
-import { BIODIVERSITY } from '../../data/start'
 import { PELAGIC_CLOSURE_THRESHOLD } from '../../data/regulations'
 import styles from './BiodiversityPanel.module.css'
 
@@ -6,12 +5,12 @@ const SEGMENTS = 20
 
 interface BiodiversityPanelProps {
   biodiversity: number
-  /** Show the daily recovery note. */
-  newDay: boolean
+  /** Biodiversity Habitat Restoration brought back at the start of today, shown until the first decision. */
+  recovered: number
 }
 
 /** The player's health bar. */
-export function BiodiversityPanel({ biodiversity, newDay }: BiodiversityPanelProps) {
+export function BiodiversityPanel({ biodiversity, recovered }: BiodiversityPanelProps) {
   const value = Math.max(0, Math.min(100, Math.round(biodiversity)))
   const filled = Math.round((value / 100) * SEGMENTS)
   const low = value <= PELAGIC_CLOSURE_THRESHOLD
@@ -37,7 +36,7 @@ export function BiodiversityPanel({ biodiversity, newDay }: BiodiversityPanelPro
       </div>
 
       <p className={styles.feedback} aria-live="polite">
-        {newDay && <span className={styles.good}>New day  +{BIODIVERSITY.dailyRecovery}%</span>}
+        {recovered > 0 && <span className={styles.good}>Habitat restoration  +{recovered}%</span>}
       </p>
     </section>
   )

@@ -92,6 +92,10 @@
   line-height: 1.45;
 }
 
+.spaced {
+  margin-top: 14px;
+}
+
 .issues li + li {
   margin-top: 6px;
 }
