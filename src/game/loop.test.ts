@@ -99,6 +99,25 @@ describe('decisions', () => {
     expect(p.ticket).toMatchObject({ decision: 'reject', issues: [] })
   })
 
+  it('lists each wrong decision in the day log with what was missed', () => {
+    const wrongAccept = resolveDecision(gameWith(false), 'accept', mulberry32(1))
+    expect(wrongAccept.log.errors).toEqual([
+      expect.objectContaining({ decision: 'accept', reason: wrongAccept.ticket!.issues[0] }),
+    ])
+    const wrongReject = resolveDecision(gameWith(true), 'reject', mulberry32(1))
+    expect(wrongReject.log.errors[0]).toMatchObject({ decision: 'reject', reason: expect.stringMatching(/^Legal vessel/) })
+    expect(resolveDecision(gameWith(false), 'reject', mulberry32(1)).log.errors).toEqual([])
+  })
+
+  it('keeps season totals across days', () => {
+    let p = resolveDecision(gameWith(false), 'accept', mulberry32(1))
+    p = nextDay(p)
+    p = resolveDecision(p, decisionFor(p, true), mulberry32(2))
+    expect(p.season.vessels).toBe(2)
+    expect(p.season.illegalAccepted).toBe(1)
+    expect(p.log.errors).toEqual([])
+  })
+
   it('earns nothing and loses nothing for rejecting an illegal vessel', () => {
     const p = resolveDecision(gameWith(false), 'reject', mulberry32(1))
     expect(p.money).toBe(ECONOMY.startMoney)
@@ -284,6 +303,9 @@ describe('verification', () => {
     const p = resolveDecision(toDay(4), 'accept', mulberry32(1))
     expect(p.ticket!.hidden).toHaveLength(1)
     expect(p.ticket!.hidden[0]).toMatch(/^Vessel Tracking: the vessel was really in/)
+    expect(p.season.falsifiedAccepted).toBe(1)
+    expect(p.season.missedByTool.tracking).toBe(1)
+    expect(p.log.errors[0].reason).toMatch(/\(report falsified\)$/)
   })
 })
 

@@ -123,10 +123,33 @@ export interface Ticket {
 export type ShopItem = 'catch' | 'license' | 'inspector' | 'habitat'
 
 /** Money and decisions for one day, shown on the end-of-day summary. */
+/** A wrong decision, listed on the end-of-day ledger. */
+export interface Mistake {
+  arrivalNo: number
+  vesselName: string
+  decision: Decision
+  /** What the player missed, or that the vessel was legal. */
+  reason: string
+}
+
+/** Running totals for the whole season, shown in the end-of-game debrief. */
+export interface SeasonLog {
+  vessels: number
+  illegalRejected: number
+  illegalAccepted: number
+  /** Illegal vessels accepted whose paperwork had been falsified to look legal. */
+  falsifiedAccepted: number
+  /** For falsified vessels accepted: how many each tool would have exposed. */
+  missedByTool: Record<Tool, number>
+  legalRejected: number
+}
+
 export interface DayLog {
   accepted: number
   rejected: number
   mistakes: number
+  /** Today's wrong decisions, in order. */
+  errors: Mistake[]
   revenue: number
   fines: number
   inspectionFees: number

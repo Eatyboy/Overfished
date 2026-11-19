@@ -12,6 +12,8 @@ export const BIODIVERSITY = {
   max: 100,
   /** Lost for each illegal ship accepted. It does not recover on its own; only Habitat Restoration restores it. */
   wrongPenalty: 10,
+  /** Finishing the season at or above this keeps a healthy fishery; below it, the fishery ends depleted. */
+  healthyEnding: 70,
 }
 
 export const PORT = {

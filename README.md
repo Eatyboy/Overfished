@@ -64,16 +64,16 @@ A single **Marine Biodiversity** bar acts as the ocean's health (tuned in `src/d
 - At or below **30%** the bar turns red, and coastal pelagic fishing closes.
 
 ### Port budget
-Money is the port's operating budget (tuned in `src/data/economy.ts`). It pushes the player to accept vessels even when they're unsure.
+Money is the port's operating budget (tuned in `src/data/economy.ts` with the balance simulation: `npm run sim` plays every day with simulated players across a grid of settings and writes `balance-sim.txt`). It pushes the player to accept vessels even when they're unsure.
 
 | Event | Effect |
 | --- | --- |
 | Start | $200 |
-| Accept any vessel | +$30 port fees (an illegal one also costs biodiversity) |
+| Accept any vessel | +$40 port fees (an illegal one also costs biodiversity) |
 | Reject a legal vessel | −$20 industry complaint, plus a ticket |
 | Reject an illegal vessel | $0 |
-| Inspection | First 3 each day are free, then $10 each |
-| End of each day | −$100 operating expense. If the port can't pay, it shuts down |
+| Inspection | First 3 each day are free, then $20 each |
+| End of each day (5 PM) | −$80 operating expense. If the port can't pay, it shuts down |
 
 ### Falsified reports and verification
 - **Days 1–2:** every report is true.
@@ -107,7 +107,10 @@ After each shift the player sees the day's ledger and can buy upgrades:
 ### Endings
 - **Collapse:** Marine Biodiversity hits 0% and the game ends early.
 - **Port closed:** the port can't pay its end-of-day operating expense.
-- **Season complete:** the player makes it through all 12 days.
+- **Season complete:** the player makes it through all 12 days with Marine Biodiversity at 70% or more.
+- **Fishery depleted:** the player makes it through all 12 days, but biodiversity ends below 70%.
+
+Every ending shows a season debrief: vessels inspected, illegal vessels stopped and let through, how many of those had falsified paperwork, and which verification tool would have exposed them. The end-of-day ledger also lists each wrong decision and what was missed.
 
 ---
 

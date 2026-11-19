@@ -2,23 +2,23 @@ import type { ShopItem, Tool } from '../game/types'
 
 /*
  * The port's operating budget, verification costs, shop prices and falsified-report rollout.
- * All values are first guesses to be balanced in playtesting.
+ * Tuned with the balance simulation (npm run sim, scripts/balance.sim.test.ts) for 2-minute days.
  */
 
 export const ECONOMY = {
   startMoney: 200,
   /** Port fees earned for every vessel accepted, legal or not. */
-  acceptRevenue: 30,
+  acceptRevenue: 40,
   /** Industry complaint charged for rejecting a legal vessel. */
   wrongRejectFine: 20,
   /** Paid at the end of each day. If the port can't cover it, the port is shut down. */
-  operatingExpense: 100,
+  operatingExpense: 80,
   /** Inspections per day that cost nothing. */
   freeInspections: 3,
   /** Free inspections per day with an Additional Inspector. */
   inspectorFreeInspections: 5,
   /** Cost of each inspection past the free ones. */
-  inspectionCost: 10,
+  inspectionCost: 20,
 }
 
 /** Percentage points of biodiversity each Habitat Restoration purchase restores at the start of every later day. */
