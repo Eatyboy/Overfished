@@ -56,7 +56,7 @@ describe('gameStore', () => {
     it('keep the old screen state until the screen is black', () => {
       store().startShift()
       settle()
-      store().tick(180_000)
+      store().tick(120_000)
       settle()
       expect(store().screen).toBe('summary')
       const log = store().log
@@ -92,7 +92,7 @@ describe('gameStore', () => {
     settle()
     store().tick(60_000)
     expect(store().elapsedMs).toBe(60_000)
-    store().tick(180_000)
+    store().tick(120_000)
     settle()
     expect(store().screen).toBe('summary')
     store().nextDay()
@@ -106,7 +106,7 @@ describe('gameStore', () => {
     store().startShift()
     settle()
     useGameStore.setState({ money: 0 })
-    store().tick(180_000)
+    store().tick(120_000)
     settle()
     expect(store().screen).toBe('gameOver')
     expect(store().outcome).toBe('bankrupt')

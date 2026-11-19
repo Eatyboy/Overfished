@@ -26,5 +26,5 @@ export const SHIFT_CLOCK = {
   /** The clock shown to the player moves in steps of this many in-game minutes. */
   stepMinutes: 30,
   /** Real time one day lasts. */
-  realMs: 3 * 60 * 1000,
+  realMs: 2 * 60 * 1000,
 }

@@ -5,7 +5,7 @@ const { startHour, endHour, stepMinutes, realMs } = SHIFT_CLOCK
 /** Number of clock steps in a day (16 for 9 AM – 5 PM in 30-minute steps). */
 export const CLOCK_STEPS = ((endHour - startHour) * 60) / stepMinutes
 
-/** Real milliseconds per clock step (11.25 s for a 3-minute day). */
+/** Real milliseconds per clock step (7.5 s for a 2-minute day). */
 export const STEP_MS = realMs / CLOCK_STEPS
 
 /** In-game minutes since midnight shown on the clock, after `elapsedMs` of the shift. */

@@ -17,7 +17,7 @@ You're the inspector at the Port of San Diego. Ships come in one at a time, each
 3. **Accept** or **reject** the ship.
 4. Repeat until the shift ends, then pay the port's operating expense, review the day's ledger, and shop for upgrades.
 
-The game takes place in **2026** and lasts up to **12 days**, one for each month: Day 1 is 1 January 2026 and Day 12 is 1 December 2026. Each day is a timed shift: the clock runs from **9:00 AM to 5:00 PM** in 30-minute steps over **3 real minutes**, and the player inspects as many ships as they can. At 5 PM the ship at the booth is sent away and the day ends.
+The game takes place in **2026** and lasts up to **12 days**, one for each month: Day 1 is 1 January 2026 and Day 12 is 1 December 2026. Each day is a timed shift: the clock runs from **9:00 AM to 5:00 PM** in 30-minute steps over **2 real minutes**, and the player inspects as many ships as they can. At 5 PM the ship at the booth is sent away and the day ends.
 
 ### Fishing reports
 Say **what** a ship caught and **how**. Reports are randomly generated from pools of options:
