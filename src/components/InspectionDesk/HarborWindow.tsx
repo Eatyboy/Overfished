@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Boat } from '../pixel/Boat'
 import { makeRipples } from '../pixel/random'
 import pixel from '../pixel/pixel.module.css'
@@ -34,11 +35,39 @@ const RIPPLES = makeRipples({
 
 interface HarborWindowProps {
   vesselNumber: number
+  /** Identifies the vessel at the booth. When it changes, the old boat sails out and the new one sails in. */
+  arrivalNo: number
+}
+
+/** Foam left behind the stern while a boat is under way (Boat coordinates). */
+const WAKE: ReadonlyArray<readonly [number, number, number]> = [
+  [318, 626, 40],
+  [282, 634, 28],
+  [330, 640, 52],
+  [250, 630, 18],
+]
+
+function Wake() {
+  return (
+    <g className={styles.wake}>
+      {WAKE.map(([x, y, w]) => (
+        <rect key={x} x={x} y={y} width={w} height={4} fill="var(--water-light)" />
+      ))}
+    </g>
+  )
 }
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
-export function HarborWindow({ vesselNumber }: HarborWindowProps) {
+export function HarborWindow({ vesselNumber, arrivalNo }: HarborWindowProps) {
+  // The boat at the booth, and the one sailing away after a decision (null once it is out of sight).
+  const [docked, setDocked] = useState(arrivalNo)
+  const [leaving, setLeaving] = useState<number | null>(null)
+  if (docked !== arrivalNo) {
+    setLeaving(docked)
+    setDocked(arrivalNo)
+  }
+
   return (
     <div className={styles.window}>
       <svg
@@ -95,15 +124,33 @@ export function HarborWindow({ vesselNumber }: HarborWindowProps) {
             <rect key={x} x={x} y={306} width={12} height={21} fill="var(--teal)" />
           ))}
 
-          {/* boats */}
+          {/* a far boat cruising across the harbor */}
           <g transform="translate(408 -16) scale(0.4)">
-            <g className={pixel.bobSlow}>
-              <Boat />
+            <g className={styles.cruise}>
+              <g className={pixel.bobSlow}>
+                <Boat />
+              </g>
             </g>
           </g>
+
+          {/* the vessel at the booth: sails in from the left, sails out to the right after a decision */}
           <g transform="translate(58 -111) scale(0.63)">
-            <g className={pixel.bob}>
-              <Boat />
+            {leaving !== null && (
+              <g key={`out-${leaving}`} className={styles.sailOut} onAnimationEnd={(e) => {
+                  // Ignore the wake's own animation ending, which bubbles up here.
+                  if (e.target === e.currentTarget) setLeaving(null)
+                }}>
+                <Wake />
+                <g className={pixel.bob}>
+                  <Boat />
+                </g>
+              </g>
+            )}
+            <g key={`in-${docked}`} className={styles.sailIn}>
+              <Wake />
+              <g className={pixel.bob}>
+                <Boat />
+              </g>
             </g>
           </g>
         </g>

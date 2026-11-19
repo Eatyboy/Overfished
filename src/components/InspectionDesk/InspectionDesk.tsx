@@ -63,7 +63,11 @@ export function InspectionDesk() {
       <DeskHeader shift={shift} clock={clock} />
 
       <section className={styles.top}>
-        <HarborWindow vesselNumber={shift.vesselNumber} />
+        <HarborWindow
+          // While a ticket is open the decided vessel is still at the booth.
+          vesselNumber={ticket ? shift.vesselNumber - 1 : shift.vesselNumber}
+          arrivalNo={onDesk.report.arrivalNo}
+        />
         <BiodiversityPanel biodiversity={biodiversity} recovered={newDay ? habitatRecovery({ owned }) : 0} />
         <VerificationPanel
           money={money}
