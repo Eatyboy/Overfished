@@ -162,4 +162,21 @@ describe('gameStore', () => {
     expect(s.shift.day).toBe(9)
     expect(s.outcome).toBeNull()
   })
+
+  it('runs the shift clock faster at a higher debug speed', () => {
+    store().startShift()
+    settle()
+    store().setSpeed(4)
+    store().tick(1_000)
+    expect(store().elapsedMs).toBe(4_000)
+    store().setSpeed(1)
+  })
+
+  it('ends the day early from the debug panel', () => {
+    store().startShift()
+    settle()
+    store().endDay()
+    settle()
+    expect(store().screen).toBe('summary')
+  })
 })

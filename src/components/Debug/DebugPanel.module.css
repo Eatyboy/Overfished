@@ -53,3 +53,14 @@
   max-width: 190px;
   color: var(--paper-muted);
 }
+
+.wide {
+  width: 100%;
+  margin-top: 8px;
+  padding: 0 8px;
+}
+
+.day:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
