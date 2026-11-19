@@ -11,12 +11,6 @@ const pad3 = (n: number) => String(n).padStart(3, '0')
 export function DecisionBar({ arrivalNo, onDecide }: DecisionBarProps) {
   return (
     <>
-      <p className={styles.status}>
-        Report {pad3(arrivalNo)}
-        <br />
-        Awaiting decision
-      </p>
-
       <button
         type="button"
         className={`${styles.button} ${styles.accept}`}
@@ -31,12 +25,6 @@ export function DecisionBar({ arrivalNo, onDecide }: DecisionBarProps) {
       >
         Reject
       </button>
-
-      <p className={styles.hint}>
-        Check both documents
-        <br />
-        before clearing entry
-      </p>
     </>
   )
 }

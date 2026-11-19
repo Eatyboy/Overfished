@@ -1,82 +1,157 @@
-import { beforeEach, describe, expect, it } from 'vitest'
-import { useGameStore } from './gameStore'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { FADE_MS, useGameStore } from './gameStore'
 import { BIODIVERSITY } from '../data/start'
+
+const store = () => useGameStore.getState()
+
+/** Let any scene-change fade finish (black, swap, fade back in). */
+const settle = () => vi.advanceTimersByTime(2 * FADE_MS)
 
 describe('gameStore', () => {
   beforeEach(() => {
-    useGameStore.getState().startShift()
-    useGameStore.setState({ screen: 'title' })
+    vi.useFakeTimers()
+    useGameStore.setState({ fade: null })
+    store().startShift()
+    settle()
+    useGameStore.setState({ screen: 'title', fade: null })
+  })
+
+  afterEach(() => {
+    vi.clearAllTimers()
+    vi.useRealTimers()
   })
 
   it('starts on the title screen on day 1, the first of the month', () => {
-    const { screen, shift } = useGameStore.getState()
+    const { screen, shift } = store()
     expect(screen).toBe('title')
     expect(shift.day).toBe(1)
     expect(shift.date.day).toBe(1)
   })
 
   it('starts with full marine biodiversity, a ship, and the day 1 regulations', () => {
-    const { biodiversity, ship, regulations } = useGameStore.getState()
+    const { biodiversity, ship, regulations } = store()
     expect(biodiversity).toBe(BIODIVERSITY.start)
     expect(ship.report.arrivalNo).toBe(1)
     expect(regulations.map((r) => r.id)).toEqual(['san-diego-waters', 'off-limits'])
   })
 
   it('moves to the inspection desk when a shift starts', () => {
-    useGameStore.getState().startShift()
-    expect(useGameStore.getState().screen).toBe('desk')
+    store().startShift()
+    settle()
+    expect(store().screen).toBe('desk')
   })
 
-  it('advances to the next ship after a decision', () => {
-    useGameStore.getState().startShift()
-    useGameStore.getState().decide('accept')
-    expect(useGameStore.getState().shift.vesselNumber).toBe(2)
+  describe('scene changes', () => {
+    it('fade to black, swap the screen while black, then fade in: 1 second in all', () => {
+      store().startShift()
+      expect(store()).toMatchObject({ screen: 'title', fade: 'out' })
+      vi.advanceTimersByTime(FADE_MS - 1)
+      expect(store()).toMatchObject({ screen: 'title', fade: 'out' })
+      vi.advanceTimersByTime(1)
+      expect(store()).toMatchObject({ screen: 'desk', fade: 'in' })
+      vi.advanceTimersByTime(FADE_MS)
+      expect(store()).toMatchObject({ screen: 'desk', fade: null })
+    })
+
+    it('keep the old screen state until the screen is black', () => {
+      store().startShift()
+      settle()
+      store().tick(180_000)
+      settle()
+      expect(store().screen).toBe('summary')
+      const log = store().log
+      store().nextDay()
+      // Still the end-of-day ledger while fading out, not the next day's empty one.
+      expect(store().log).toBe(log)
+      expect(store().shift.day).toBe(1)
+      settle()
+      expect(store().shift.day).toBe(2)
+    })
+
+    it('ignore input and the clock while fading out', () => {
+      store().startShift()
+      store().startShift()
+      store().tick(10_000)
+      vi.advanceTimersByTime(FADE_MS)
+      expect(store().elapsedMs).toBe(0)
+      store().tick(10_000)
+      expect(store().elapsedMs).toBe(10_000)
+    })
+
+    it('do not fade for changes on the same screen', () => {
+      store().startShift()
+      settle()
+      store().decide('accept')
+      expect(store().fade).toBeNull()
+      expect(store().shift.vesselNumber).toBe(2)
+    })
   })
 
   it('advances the shift clock, shows the day summary at 5 PM, then starts the next day', () => {
-    useGameStore.getState().startShift()
-    useGameStore.getState().tick(60_000)
-    expect(useGameStore.getState().elapsedMs).toBe(60_000)
-    useGameStore.getState().tick(180_000)
-    expect(useGameStore.getState().screen).toBe('summary')
-    useGameStore.getState().nextDay()
-    expect(useGameStore.getState().screen).toBe('desk')
-    expect(useGameStore.getState().shift.day).toBe(2)
-    expect(useGameStore.getState().elapsedMs).toBe(0)
+    store().startShift()
+    settle()
+    store().tick(60_000)
+    expect(store().elapsedMs).toBe(60_000)
+    store().tick(180_000)
+    settle()
+    expect(store().screen).toBe('summary')
+    store().nextDay()
+    settle()
+    expect(store().screen).toBe('desk')
+    expect(store().shift.day).toBe(2)
+    expect(store().elapsedMs).toBe(0)
   })
 
   it('shows the game-over screen when the port cannot pay its operating expense', () => {
-    useGameStore.getState().startShift()
+    store().startShift()
+    settle()
     useGameStore.setState({ money: 0 })
-    useGameStore.getState().tick(180_000)
-    expect(useGameStore.getState().screen).toBe('gameOver')
-    expect(useGameStore.getState().outcome).toBe('bankrupt')
+    store().tick(180_000)
+    settle()
+    expect(store().screen).toBe('gameOver')
+    expect(store().outcome).toBe('bankrupt')
   })
 
   it('shows the game-over screen on collapse and resets on play again', () => {
-    useGameStore.getState().startShift()
+    store().startShift()
+    settle()
     useGameStore.setState({ biodiversity: BIODIVERSITY.wrongPenalty })
     // Only accepting an illegal ship hurts biodiversity, so accept ships until one is illegal.
-    while (useGameStore.getState().outcome === null) useGameStore.getState().decide('accept')
+    for (let i = 0; i < 500 && store().screen === 'desk'; i++) {
+      store().decide('accept')
+      settle()
+    }
 
-    expect(useGameStore.getState().screen).toBe('gameOver')
-    expect(useGameStore.getState().outcome).toBe('collapse')
+    expect(store().screen).toBe('gameOver')
+    expect(store().outcome).toBe('collapse')
 
-    useGameStore.getState().startShift()
-    expect(useGameStore.getState().screen).toBe('desk')
-    expect(useGameStore.getState().biodiversity).toBe(BIODIVERSITY.start)
-    expect(useGameStore.getState().outcome).toBeNull()
+    store().startShift()
+    settle()
+    expect(store().screen).toBe('desk')
+    expect(store().biodiversity).toBe(BIODIVERSITY.start)
+    expect(store().outcome).toBeNull()
   })
 
   it('dismisses the ticket', () => {
     useGameStore.setState({ ticket: { arrivalNo: 1, vesselName: 'The Quiet Gull', decision: 'reject', issues: [], hidden: [] } })
-    useGameStore.getState().dismissTicket()
-    expect(useGameStore.getState().ticket).toBeNull()
+    store().dismissTicket()
+    expect(store().ticket).toBeNull()
   })
 
   it('returns to the title screen', () => {
-    useGameStore.getState().startShift()
-    useGameStore.getState().returnToTitle()
-    expect(useGameStore.getState().screen).toBe('title')
+    store().startShift()
+    settle()
+    store().returnToTitle()
+    settle()
+    expect(store().screen).toBe('title')
+  })
+
+  it('skips to any day from the title screen, starting a new game', () => {
+    store().skipToDay(9)
+    settle()
+    const s = store()
+    expect(s.screen).toBe('desk')
+    expect(s.shift.day).toBe(9)
+    expect(s.outcome).toBeNull()
   })
 })

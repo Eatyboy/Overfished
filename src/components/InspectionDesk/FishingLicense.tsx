@@ -2,16 +2,18 @@ import type { FishingLicense as FishingLicenseData } from '../../game/types'
 import { formatDate } from '../../game/date'
 import paper from './Paper.module.css'
 import styles from './FishingLicense.module.css'
+import type { DragProps } from './useDeskDocuments'
 
 interface FishingLicenseProps {
   license: FishingLicenseData
   /** From the port's own records, stamped on the card at the booth. */
   priorViolations: number
+  drag: DragProps
 }
 
-export function FishingLicense({ license, priorViolations }: FishingLicenseProps) {
+export function FishingLicense({ license, priorViolations, drag }: FishingLicenseProps) {
   return (
-    <article className={`${paper.paper} ${styles.license}`} aria-label="Fishing license">
+    <article {...drag} className={`${paper.paper} ${styles.license}`} aria-label="Fishing license">
       <p className={paper.meta}>Commercial Fishing</p>
       <h2 className={`${paper.title} ${styles.title}`}>License</h2>
 

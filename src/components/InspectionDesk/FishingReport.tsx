@@ -1,16 +1,18 @@
 import type { FishingReport as FishingReportData } from '../../game/types'
 import paper from './Paper.module.css'
 import styles from './FishingReport.module.css'
+import type { DragProps } from './useDeskDocuments'
 
 interface FishingReportProps {
   report: FishingReportData
+  drag: DragProps
 }
 
 const pad3 = (n: number) => String(n).padStart(3, '0')
 
-export function FishingReport({ report }: FishingReportProps) {
+export function FishingReport({ report, drag }: FishingReportProps) {
   return (
-    <article className={`${paper.paper} ${styles.report}`} aria-label="Fishing report">
+    <article {...drag} className={`${paper.paper} ${styles.report}`} aria-label="Fishing report">
       <p className={paper.meta}>
         Port Authority &nbsp;/&nbsp; Arrival No. {pad3(report.arrivalNo)}
       </p>

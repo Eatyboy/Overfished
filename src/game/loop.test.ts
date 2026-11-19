@@ -7,11 +7,13 @@ import {
   isLegal,
   newGame,
   resolveDecision,
+  skipToDay,
   startNextDay,
   type Progress,
 } from './loop'
 import { CLOCK_STEPS, STEP_MS, clockMinutes, formatClock } from './clock'
 import { mulberry32 } from './random'
+import { regulationsForDay } from './regulations'
 import { BIODIVERSITY, SHIFT_CLOCK, TOTAL_DAYS } from '../data/start'
 import { ECONOMY, FALSIFIED_REPORTS, HABITAT_RECOVERY_PER_LEVEL } from '../data/economy'
 import type { Decision } from './types'
@@ -157,6 +159,33 @@ describe('days', () => {
     expect(p.shift.day).toBe(TOTAL_DAYS)
     p = endDay({ ...p, money: 1000 })
     expect(p.outcome).toBe('complete')
+  })
+})
+
+describe('skipToDay (debug)', () => {
+  it('starts a fresh shift on the chosen day, keeping money, biodiversity and upgrades', () => {
+    const start = { ...newGame(mulberry32(1)), money: 777, biodiversity: 60, owned: { catch: 1, license: 0, inspector: 1, habitat: 2 } }
+    const p = skipToDay(start, 7, mulberry32(2))
+    expect(p.shift.day).toBe(7)
+    expect(p.phase).toBe('shift')
+    expect(p.elapsedMs).toBe(0)
+    expect(p.regulations).toEqual(regulationsForDay(7))
+    expect(p.blacklist.length).toBeGreaterThanOrEqual(5)
+    expect(p.money).toBe(777)
+    expect(p.biodiversity).toBe(60)
+    expect(p.owned).toEqual(start.owned)
+    expect(p.log.accepted + p.log.rejected).toBe(0)
+  })
+
+  it('opens day 4 with the bulletin and guided example, and clamps out-of-range days', () => {
+    expect(skipToDay(newGame(mulberry32(1)), 4, mulberry32(2))).toMatchObject({ bulletin: true, ship: { lies: ['tracking'] } })
+    expect(skipToDay(newGame(mulberry32(1)), 0, mulberry32(2)).shift.day).toBe(1)
+    expect(skipToDay(newGame(mulberry32(1)), 99, mulberry32(2)).shift.day).toBe(TOTAL_DAYS)
+  })
+
+  it('clears a game over', () => {
+    const p = skipToDay({ ...newGame(mulberry32(1)), outcome: 'bankrupt' }, 5, mulberry32(2))
+    expect(p.outcome).toBeNull()
   })
 })
 

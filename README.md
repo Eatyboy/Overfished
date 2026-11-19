@@ -87,7 +87,9 @@ Money is the port's operating budget (tuned in `src/data/economy.ts`). It pushes
 | Leaves illegal catches or bait off the report | 5 | Catch Verification (shop) |
 | Forged license claiming permits it doesn't have | 7 | License Database (shop) |
 
-**Blacklist (Day 3 onward):** each day the regulations sheet lists 5–10 known offenders to reject on sight, and the list changes every day. A third of illegal vessels (including ones whose paperwork looks legal) sail under a blacklisted name, and legal vessels never do.
+**Blacklist (Day 3 onward):** each day a separate Blacklist slip on the desk lists 5–10 known offenders to reject on sight, and the list changes every day. A third of illegal vessels (including ones whose paperwork looks legal) sail under a blacklisted name, and legal vessels never do.
+
+**The desk:** every document (report, license, regulations, blacklist) can be dragged anywhere. Pressing one brings it to the front, and dropping it off the desk snaps it back on.
 
 Tools show **evidence, not verdicts**: the player compares what they find with the documents and the regulations. Some legal vessels have harmless mismatches (for example, a different San Diego fishing ground), so a mismatch alone doesn't prove anything. The license card also shows the vessel's **port record** (prior violations). It's a free but imperfect hint, since liars are more likely to have prior violations.
 

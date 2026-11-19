@@ -256,9 +256,22 @@ export function buy(p: Progress, item: ShopItem): Progress {
 /** Leave the summary and start the next day's shift, restoring biodiversity by Habitat Restoration. */
 export function startNextDay(p: Progress, rand: Rng): Progress {
   if (p.outcome || p.phase !== 'summary') return p
-  const shift = shiftForDay(p.shift.day + 1)
+  return { ...beginDay(p, p.shift.day + 1, clamp(p.biodiversity + habitatRecovery(p)), rand), newDay: true }
+}
+
+/**
+ * Debug: start a fresh shift on any day (clamped to 1–12), keeping money, biodiversity and upgrades.
+ * Clears any game-over, ticket or open notice. Day 4 still opens with the bulletin and guided example.
+ */
+export function skipToDay(p: Progress, day: number, rand: Rng): Progress {
+  const target = Math.max(1, Math.min(TOTAL_DAYS, Math.round(day)))
+  return { ...beginDay(p, target, p.biodiversity, rand), outcome: null }
+}
+
+/** The start of a day's shift: its regulations, blacklist, first ship and an empty log. */
+function beginDay(p: Progress, day: number, biodiversity: number, rand: Rng): Progress {
+  const shift = shiftForDay(day)
   const regulations = regulationsForDay(shift.day)
-  const biodiversity = clamp(p.biodiversity + habitatRecovery(p))
   const blacklist = shift.day >= BLACKLIST.fromDay ? generateBlacklist(rand) : []
   return {
     ...p,
@@ -273,7 +286,7 @@ export function startNextDay(p: Progress, rand: Rng): Progress {
     inspected: [],
     viewing: null,
     bulletin: shift.day === FALSIFIED_REPORTS.startDay,
-    newDay: true,
+    newDay: false,
     ticket: null,
     log: emptyLog(biodiversity),
   }

@@ -11,6 +11,8 @@ import { VerificationPanel } from './VerificationPanel'
 import { FishingReport } from './FishingReport'
 import { FishingLicense } from './FishingLicense'
 import { PortRegulations } from './PortRegulations'
+import { BlacklistDocument } from './BlacklistDocument'
+import { useDeskDocuments } from './useDeskDocuments'
 import { DecisionBar } from './DecisionBar'
 import { TicketNotice } from './TicketNotice'
 import { EvidenceNotice } from './EvidenceNotice'
@@ -43,6 +45,8 @@ export function InspectionDesk() {
   const closeEvidence = useGameStore((s) => s.closeEvidence)
   const dismissBulletin = useGameStore((s) => s.dismissBulletin)
 
+  const drag = useDeskDocuments()
+
   // The shift clock pauses while any notice is open.
   useShiftTimer(tick, ticket !== null || viewing !== null || bulletin)
 
@@ -71,10 +75,13 @@ export function InspectionDesk() {
         <span className={styles.bolt} style={{ left: 50 }} aria-hidden="true" />
         <span className={styles.bolt} style={{ left: 1386 }} aria-hidden="true" />
 
-        <FishingReport report={ship.report} />
-        <FishingLicense license={ship.license} priorViolations={ship.priorViolations} />
-        <PortRegulations shift={shift} regulations={regulations} blacklist={blacklist} />
         <DecisionBar arrivalNo={ship.report.arrivalNo} onDecide={decide} />
+
+        {/* Documents come after the decision bar so they can be laid over it. */}
+        <FishingReport report={ship.report} drag={drag('report')} />
+        <FishingLicense license={ship.license} priorViolations={ship.priorViolations} drag={drag('license')} />
+        <PortRegulations shift={shift} regulations={regulations} drag={drag('regulations')} />
+        {blacklist.length > 0 && <BlacklistDocument names={blacklist} drag={drag('blacklist')} />}
       </section>
 
       {bulletin && <BulletinNotice onDismiss={dismissBulletin} />}
