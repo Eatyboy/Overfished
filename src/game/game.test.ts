@@ -388,8 +388,23 @@ describe('blacklist', () => {
     }
   })
 
-  it('lists about a third of illegal vessels, including ones whose paperwork looks legal', () => {
-    for (const day of [3, 8]) {
+  it('on day 3, lists every illegal vessel whose paperwork looks legal, since nothing else can catch it', () => {
+    const { illegal, regulations, ctx } = shipsOn(3)
+    const cleanLooking = illegal.filter((s) => findViolations(s, regulations, ctx).length === 0)
+    expect(cleanLooking.length).toBeGreaterThan(0)
+    for (const s of cleanLooking) expect(listed(s)).toBe(true)
+  })
+
+  it('lists about a third of illegal vessels that can be caught some other way', () => {
+    const { illegal, regulations, ctx } = shipsOn(3)
+    const flawed = illegal.filter((s) => findViolations(s, regulations, ctx).length > 0)
+    const rate = flawed.filter(listed).length / flawed.length
+    expect(rate).toBeGreaterThan(BLACKLIST.chance - 0.06)
+    expect(rate).toBeLessThan(BLACKLIST.chance + 0.06)
+  })
+
+  it('from day 4, lists about a third of illegal vessels, including ones whose paperwork looks legal', () => {
+    for (const day of [8]) {
       const { illegal, regulations, ctx } = shipsOn(day)
       const rate = illegal.filter(listed).length / illegal.length
       expect(rate).toBeGreaterThan(BLACKLIST.chance - 0.06)

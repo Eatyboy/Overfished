@@ -1,0 +1,25 @@
+/* Colours that change for the last hour of the shift. */
+.rim {
+  fill: var(--brown);
+}
+
+.minute {
+  fill: var(--red);
+}
+
+.closing .rim {
+  fill: var(--red);
+  animation: blink 1s steps(2, jump-none) infinite;
+}
+
+@keyframes blink {
+  50% {
+    fill: var(--red-light);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .closing .rim {
+    animation: none;
+  }
+}

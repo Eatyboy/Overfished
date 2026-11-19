@@ -11,6 +11,7 @@ import {
   type Progress,
 } from '../game/loop'
 import { mulberry32 } from '../game/random'
+import { SHIFT_CLOCK } from '../data/start'
 
 export type Screen = 'title' | 'desk' | 'summary' | 'gameOver'
 
@@ -45,6 +46,11 @@ export interface GameState extends Progress {
   nextDay: () => void
   /** Debug: jump straight to the start of any day's shift. From the title or game-over screen, starts a new game first. */
   skipToDay: (day: number) => void
+  /** Debug: how many times faster than real time the shift clock runs (1 = normal). Survives new games. */
+  speed: number
+  setSpeed: (speed: number) => void
+  /** Debug: jump the clock to 5 PM, ending today's shift. */
+  endDay: () => void
 }
 
 const rand = mulberry32(Date.now())
@@ -78,6 +84,7 @@ export const useGameStore = create<GameState>()((set, get) => {
     ...newGame(rand),
     screen: 'title',
     fade: null,
+    speed: 1,
     startShift: () => !fadingOut() && go({ ...newGame(rand), screen: 'desk' }),
     returnToTitle: () => !fadingOut() && go({ screen: 'title' }),
     decide: (decision) => !fadingOut() && go(withScreen(resolveDecision(get(), decision, rand))),
@@ -86,9 +93,11 @@ export const useGameStore = create<GameState>()((set, get) => {
     closeEvidence: () => set({ viewing: null }),
     dismissBriefing: () => set({ briefing: false }),
     dismissBulletin: () => set({ bulletin: false }),
-    tick: (ms) => !fadingOut() && go(withScreen(advanceTime(get(), ms))),
+    tick: (ms) => !fadingOut() && go(withScreen(advanceTime(get(), ms * get().speed))),
     buy: (item) => !fadingOut() && set(buy(get(), item)),
     nextDay: () => !fadingOut() && go(withScreen(startNextDay(get(), rand))),
+    setSpeed: (speed) => set({ speed }),
+    endDay: () => !fadingOut() && go(withScreen(advanceTime(get(), SHIFT_CLOCK.realMs))),
     skipToDay: (day) => {
       if (fadingOut()) return
       const s = get()

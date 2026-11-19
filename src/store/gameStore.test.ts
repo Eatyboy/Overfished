@@ -56,7 +56,7 @@ describe('gameStore', () => {
     it('keep the old screen state until the screen is black', () => {
       store().startShift()
       settle()
-      store().tick(180_000)
+      store().tick(120_000)
       settle()
       expect(store().screen).toBe('summary')
       const log = store().log
@@ -92,7 +92,7 @@ describe('gameStore', () => {
     settle()
     store().tick(60_000)
     expect(store().elapsedMs).toBe(60_000)
-    store().tick(180_000)
+    store().tick(120_000)
     settle()
     expect(store().screen).toBe('summary')
     store().nextDay()
@@ -106,7 +106,7 @@ describe('gameStore', () => {
     store().startShift()
     settle()
     useGameStore.setState({ money: 0 })
-    store().tick(180_000)
+    store().tick(120_000)
     settle()
     expect(store().screen).toBe('gameOver')
     expect(store().outcome).toBe('bankrupt')
@@ -141,7 +141,7 @@ describe('gameStore', () => {
   })
 
   it('dismisses the ticket', () => {
-    useGameStore.setState({ ticket: { arrivalNo: 1, vesselName: 'The Quiet Gull', decision: 'reject', issues: [], hidden: [] } })
+    useGameStore.setState({ ticket: { arrivalNo: 1, vesselName: 'The Quiet Gull', decision: 'reject', issues: [], hidden: [], ship: store().ship } })
     store().dismissTicket()
     expect(store().ticket).toBeNull()
   })
@@ -161,5 +161,22 @@ describe('gameStore', () => {
     expect(s.screen).toBe('desk')
     expect(s.shift.day).toBe(9)
     expect(s.outcome).toBeNull()
+  })
+
+  it('runs the shift clock faster at a higher debug speed', () => {
+    store().startShift()
+    settle()
+    store().setSpeed(4)
+    store().tick(1_000)
+    expect(store().elapsedMs).toBe(4_000)
+    store().setSpeed(1)
+  })
+
+  it('ends the day early from the debug panel', () => {
+    store().startShift()
+    settle()
+    store().endDay()
+    settle()
+    expect(store().screen).toBe('summary')
   })
 })

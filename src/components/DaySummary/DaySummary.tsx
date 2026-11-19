@@ -39,6 +39,19 @@ export function DaySummary() {
           <dd className={log.mistakes > 0 ? styles.bad : undefined}>{log.mistakes}</dd>
         </dl>
 
+        {log.errors.length > 0 && (
+          <ol className={styles.errors} aria-label="Today's inspection errors">
+            {log.errors.map((m) => (
+              <li key={m.arrivalNo}>
+                <span className={styles.errorVessel}>
+                  {m.decision === 'accept' ? 'Accepted' : 'Rejected'} {m.vesselName}
+                </span>{' '}
+                {m.reason}
+              </li>
+            ))}
+          </ol>
+        )}
+
         <dl className={`${styles.rows} ${styles.money}`}>
           <dt>Port fees</dt>
           <dd>{signed(log.revenue)}</dd>
@@ -63,7 +76,8 @@ export function DaySummary() {
         </dl>
 
         <p className={styles.warning}>
-          Tomorrow's operating expense: ${ECONOMY.operatingExpense}. If the port can't pay it, the port shuts down.
+          The port pays ${ECONOMY.operatingExpense} in operating expenses at 5 PM every day, already taken from today's
+          budget above. If it can't pay, the port shuts down.
         </p>
       </section>
 

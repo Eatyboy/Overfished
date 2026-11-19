@@ -17,7 +17,7 @@ You're the inspector at the Port of San Diego. Ships come in one at a time, each
 3. **Accept** or **reject** the ship.
 4. Repeat until the shift ends, then pay the port's operating expense, review the day's ledger, and shop for upgrades.
 
-The game takes place in **2026** and lasts up to **12 days**, one for each month: Day 1 is 1 January 2026 and Day 12 is 1 December 2026. Each day is a timed shift: the clock runs from **9:00 AM to 5:00 PM** in 30-minute steps over **3 real minutes**, and the player inspects as many ships as they can. At 5 PM the ship at the booth is sent away and the day ends.
+The game takes place in **2026** and lasts up to **12 days**, one for each month: Day 1 is 1 January 2026 and Day 12 is 1 December 2026. Each day is a timed shift: the clock runs from **9:00 AM to 5:00 PM** in 15-minute steps over **2 real minutes**, and the player inspects as many ships as they can. At 5 PM the ship at the booth is sent away and the day ends.
 
 ### Fishing reports
 Say **what** a ship caught and **how**. Reports are randomly generated from pools of options:
@@ -64,21 +64,21 @@ A single **Marine Biodiversity** bar acts as the ocean's health (tuned in `src/d
 - At or below **30%** the bar turns red, and coastal pelagic fishing closes.
 
 ### Port budget
-Money is the port's operating budget (tuned in `src/data/economy.ts`). It pushes the player to accept vessels even when they're unsure.
+Money is the port's operating budget (tuned in `src/data/economy.ts` with the balance simulation: `npm run sim` plays every day with simulated players across a grid of settings and writes `balance-sim.txt`). It pushes the player to accept vessels even when they're unsure.
 
 | Event | Effect |
 | --- | --- |
 | Start | $200 |
-| Accept any vessel | +$30 port fees (an illegal one also costs biodiversity) |
+| Accept any vessel | +$40 port fees (an illegal one also costs biodiversity) |
 | Reject a legal vessel | −$20 industry complaint, plus a ticket |
 | Reject an illegal vessel | $0 |
-| Inspection | First 3 each day are free, then $10 each |
-| End of each day | −$100 operating expense. If the port can't pay, it shuts down |
+| Inspection | First 3 each day are free, then $20 each |
+| End of each day (5 PM) | −$80 operating expense. If the port can't pay, it shuts down |
 
 ### Falsified reports and verification
 - **Days 1–2:** every report is true.
 - **Day 2 onward:** 25% of illegal vessels that aren't falsifying their paperwork hand over a visibly flawed license, one of three kinds equally often: made out to a different vessel (usually one word off, e.g. *The Silver Petrel* vs *The Silver Pelican*), missing its stamp, or carrying a forged stamp (names the Port of Long Beach, red ink instead of blue, or square instead of round). Nothing is hidden: each breaks the Matching documents or License stamp rule right on the paperwork.
-- **Day 3:** 40% of illegal vessels hand over paperwork that passes every rule, with no discrepancies. No verification tools exist yet, so only the blacklist can catch them.
+- **Day 3:** 40% of illegal vessels hand over paperwork that passes every rule, with no discrepancies. No verification tools exist yet, so every one of them is on the blacklist, which is the only way to catch them.
 - **Day 4:** a Port Authority bulletin warns that some vessels falsify their reports and issues **Vessel Tracking**. The first vessel that day is a guided example: its paperwork looks clean, but tracking places it outside San Diego waters.
 - **Days 4–12:** more and more illegal vessels falsify their paperwork to look legal (30% of illegal vessels on Day 4, up to 60%). Each vessel has its **actual** activity (hidden) and its **reported** activity (on the documents), and decisions are judged on the actual activity.
 
@@ -88,7 +88,7 @@ Money is the port's operating budget (tuned in `src/data/economy.ts`). It pushes
 | Leaves illegal catches or bait off the report | 5 | Catch Verification (shop) |
 | Forged license claiming permits it doesn't have | 7 | License Database (shop) |
 
-**Blacklist (Day 3 onward):** each day a separate Blacklist slip on the desk lists 5–10 known offenders to reject on sight, and the list changes every day. A third of illegal vessels (including ones whose paperwork looks legal) sail under a blacklisted name, and legal vessels never do.
+**Blacklist (Day 3 onward):** each day a separate Blacklist slip on the desk lists 5–10 known offenders to reject on sight, and the list changes every day. A third of illegal vessels (including ones whose paperwork looks legal) sail under a blacklisted name, and legal vessels never do. On Day 3, before any verification tool exists, every illegal vessel with clean paperwork is blacklisted.
 
 **The desk:** every document (report, license, regulations, blacklist) can be dragged anywhere. Pressing one brings it to the front, and dropping it off the desk snaps it back on.
 
@@ -107,7 +107,10 @@ After each shift the player sees the day's ledger and can buy upgrades:
 ### Endings
 - **Collapse:** Marine Biodiversity hits 0% and the game ends early.
 - **Port closed:** the port can't pay its end-of-day operating expense.
-- **Season complete:** the player makes it through all 12 days.
+- **Season complete:** the player makes it through all 12 days with Marine Biodiversity at 70% or more.
+- **Fishery depleted:** the player makes it through all 12 days, but biodiversity ends below 70%.
+
+Every ending shows a season debrief: vessels inspected, illegal vessels stopped and let through, how many of those had falsified paperwork, and which verification tool would have exposed them. The end-of-day ledger also lists each wrong decision and what was missed.
 
 ---
 

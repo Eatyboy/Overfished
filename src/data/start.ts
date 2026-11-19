@@ -12,6 +12,8 @@ export const BIODIVERSITY = {
   max: 100,
   /** Lost for each illegal ship accepted. It does not recover on its own; only Habitat Restoration restores it. */
   wrongPenalty: 10,
+  /** Finishing the season at or above this keeps a healthy fishery; below it, the fishery ends depleted. */
+  healthyEnding: 70,
 }
 
 export const PORT = {
@@ -24,7 +26,7 @@ export const SHIFT_CLOCK = {
   startHour: 9,
   endHour: 17,
   /** The clock shown to the player moves in steps of this many in-game minutes. */
-  stepMinutes: 30,
+  stepMinutes: 15,
   /** Real time one day lasts. */
-  realMs: 3 * 60 * 1000,
+  realMs: 2 * 60 * 1000,
 }

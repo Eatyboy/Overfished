@@ -233,3 +233,24 @@
     0 0 0 5px var(--ink),
     4px 6px 0 5px var(--ink);
 }
+
+/* Today's wrong decisions, under the counts. Scrolls if there are many. */
+.errors {
+  max-height: 104px;
+  overflow-y: auto;
+  margin: 10px 0 0;
+  padding: 8px 10px 8px 28px;
+  background: rgb(163 84 68 / 0.1);
+  font-size: 12px;
+  line-height: 1.4;
+  scrollbar-width: thin;
+}
+
+.errors li + li {
+  margin-top: 4px;
+}
+
+.errorVessel {
+  color: var(--red);
+  text-transform: uppercase;
+}

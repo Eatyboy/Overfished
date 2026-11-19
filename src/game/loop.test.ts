@@ -46,18 +46,18 @@ function gameWith(legal: boolean): Progress {
 }
 
 describe('shift clock', () => {
-  it('runs 9 AM to 5 PM in 30-minute steps over 3 minutes', () => {
-    expect(CLOCK_STEPS).toBe(16)
-    expect(STEP_MS).toBe(11_250)
-    expect(DAY_MS).toBe(180_000)
+  it('runs 9 AM to 5 PM in 15-minute steps over 2 minutes', () => {
+    expect(CLOCK_STEPS).toBe(32)
+    expect(STEP_MS).toBe(3_750)
+    expect(DAY_MS).toBe(120_000)
   })
 
-  it('shows the time in half-hour steps', () => {
+  it('shows the time in quarter-hour steps', () => {
     expect(formatClock(clockMinutes(0))).toBe('9:00 AM')
-    expect(formatClock(clockMinutes(11_249))).toBe('9:00 AM')
-    expect(formatClock(clockMinutes(11_250))).toBe('9:30 AM')
-    expect(formatClock(clockMinutes(6 * 11_250))).toBe('12:00 PM')
-    expect(formatClock(clockMinutes(7 * 11_250))).toBe('12:30 PM')
+    expect(formatClock(clockMinutes(3_749))).toBe('9:00 AM')
+    expect(formatClock(clockMinutes(3_750))).toBe('9:15 AM')
+    expect(formatClock(clockMinutes(12 * 3_750))).toBe('12:00 PM')
+    expect(formatClock(clockMinutes(13 * 3_750))).toBe('12:15 PM')
     expect(formatClock(clockMinutes(DAY_MS))).toBe('5:00 PM')
     expect(formatClock(clockMinutes(DAY_MS * 2))).toBe('5:00 PM')
   })
@@ -88,6 +88,8 @@ describe('decisions', () => {
     expect(p.biodiversity).toBe(BIODIVERSITY.start - BIODIVERSITY.wrongPenalty)
     expect(p.ticket).toMatchObject({ arrivalNo: 1, vesselName: start.ship.report.vesselName, decision: 'accept' })
     expect(p.ticket!.issues.length).toBeGreaterThan(0)
+    // the wrongly accepted vessel stays on the ticket so the desk can keep showing its papers
+    expect(p.ticket!.ship).toBe(start.ship)
   })
 
   it('fines a wrongly rejected legal vessel without touching biodiversity', () => {
@@ -95,6 +97,25 @@ describe('decisions', () => {
     expect(p.money).toBe(ECONOMY.startMoney - ECONOMY.wrongRejectFine)
     expect(p.biodiversity).toBe(BIODIVERSITY.start)
     expect(p.ticket).toMatchObject({ decision: 'reject', issues: [] })
+  })
+
+  it('lists each wrong decision in the day log with what was missed', () => {
+    const wrongAccept = resolveDecision(gameWith(false), 'accept', mulberry32(1))
+    expect(wrongAccept.log.errors).toEqual([
+      expect.objectContaining({ decision: 'accept', reason: wrongAccept.ticket!.issues[0] }),
+    ])
+    const wrongReject = resolveDecision(gameWith(true), 'reject', mulberry32(1))
+    expect(wrongReject.log.errors[0]).toMatchObject({ decision: 'reject', reason: expect.stringMatching(/^Legal vessel/) })
+    expect(resolveDecision(gameWith(false), 'reject', mulberry32(1)).log.errors).toEqual([])
+  })
+
+  it('keeps season totals across days', () => {
+    let p = resolveDecision(gameWith(false), 'accept', mulberry32(1))
+    p = nextDay(p)
+    p = resolveDecision(p, decisionFor(p, true), mulberry32(2))
+    expect(p.season.vessels).toBe(2)
+    expect(p.season.illegalAccepted).toBe(1)
+    expect(p.log.errors).toEqual([])
   })
 
   it('earns nothing and loses nothing for rejecting an illegal vessel', () => {
@@ -282,6 +303,9 @@ describe('verification', () => {
     const p = resolveDecision(toDay(4), 'accept', mulberry32(1))
     expect(p.ticket!.hidden).toHaveLength(1)
     expect(p.ticket!.hidden[0]).toMatch(/^Vessel Tracking: the vessel was really in/)
+    expect(p.season.falsifiedAccepted).toBe(1)
+    expect(p.season.missedByTool.tracking).toBe(1)
+    expect(p.log.errors[0].reason).toMatch(/\(report falsified\)$/)
   })
 })
 

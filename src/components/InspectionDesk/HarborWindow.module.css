@@ -43,3 +43,94 @@
   background: var(--ink);
   color: var(--tan-light);
 }
+
+/*
+ * Boat motion, in the boat's own coordinates (the booth boat is drawn at 0.63 scale,
+ * so 760 units clears the window glass on either side). Stepped to keep the pixel-art feel.
+ */
+.sailIn {
+  animation: sail-in 1100ms steps(22, jump-end) 250ms both;
+}
+
+.sailOut {
+  animation: sail-out 900ms steps(18, jump-end) both;
+}
+
+@keyframes sail-in {
+  from {
+    transform: translateX(-760px);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes sail-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(760px);
+  }
+}
+
+/* The wake shows while a boat is moving and fades once it has docked. */
+.wake {
+  opacity: 0;
+}
+
+.sailIn .wake {
+  animation: wake-in 1100ms steps(4, jump-end) 250ms both;
+}
+
+.sailOut .wake {
+  animation: wake-out 900ms steps(3, jump-end) both;
+}
+
+@keyframes wake-in {
+  0%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes wake-out {
+  0% {
+    opacity: 0;
+  }
+  30%,
+  100% {
+    opacity: 1;
+  }
+}
+
+/* The far boat (0.4 scale) crosses from right to left, off-glass at both ends, then starts over. */
+.cruise {
+  animation: cruise 45s steps(180, jump-none) -18s infinite;
+}
+
+@keyframes cruise {
+  from {
+    transform: translateX(500px);
+  }
+  to {
+    transform: translateX(-1600px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sailIn,
+  .sailOut,
+  .sailIn .wake,
+  .sailOut .wake,
+  .cruise {
+    animation: none;
+  }
+
+  .sailOut {
+    display: none;
+  }
+}

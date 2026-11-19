@@ -1,4 +1,4 @@
-import type { DayLog, Decision, Outcome, Regulation, ShiftInfo, Ship, ShopItem, Ticket, Tool } from './types'
+import type { DayLog, Decision, Outcome, Regulation, SeasonLog, ShiftInfo, Ship, ShopItem, Ticket, Tool } from './types'
 import { isShiftOver } from './clock'
 import { dateOfDay } from './date'
 import { revealedBy } from './evidence'
@@ -42,6 +42,8 @@ export interface Progress {
   ticket: Ticket | null
   /** Today's money and decisions. */
   log: DayLog
+  /** Decisions across the whole season. */
+  season: SeasonLog
   /** Set once the game is over. */
   outcome: Outcome | null
 }
@@ -63,11 +65,21 @@ const emptyLog = (biodiversity: number): DayLog => ({
   accepted: 0,
   rejected: 0,
   mistakes: 0,
+  errors: [],
   revenue: 0,
   fines: 0,
   inspectionFees: 0,
   expense: 0,
   biodiversityStart: biodiversity,
+})
+
+export const emptySeason = (): SeasonLog => ({
+  vessels: 0,
+  illegalRejected: 0,
+  illegalAccepted: 0,
+  falsifiedAccepted: 0,
+  missedByTool: { tracking: 0, catch: 0, license: 0 },
+  legalRejected: 0,
 })
 
 /** Whether the player can use a verification tool. Vessel Tracking is issued with the Day 4 bulletin. */
@@ -146,6 +158,7 @@ export function newGame(rand: Rng): Progress {
     newDay: false,
     ticket: null,
     log: emptyLog(biodiversity),
+    season: emptySeason(),
     outcome: null,
   }
 }
@@ -196,19 +209,48 @@ export function resolveDecision(p: Progress, decision: Decision, rand: Rng): Pro
           ? [`${p.ship.report.vesselName} is on today's blacklist.`, ...issues]
           : issues,
         hidden: p.ship.lies.map((tool) => revealedBy(p.ship, tool)),
+        ship: p.ship,
       }
   const log: DayLog = {
     ...p.log,
     accepted: p.log.accepted + (accept ? 1 : 0),
     rejected: p.log.rejected + (accept ? 0 : 1),
     mistakes: p.log.mistakes + (correct ? 0 : 1),
+    errors: ticket
+      ? [
+          ...p.log.errors,
+          {
+            arrivalNo: ticket.arrivalNo,
+            vesselName: ticket.vesselName,
+            decision,
+            reason: legal
+              ? 'Legal vessel: it met every regulation.'
+              : `${ticket.issues[0]}${p.ship.lies.length > 0 ? ' (report falsified)' : ''}`,
+          },
+        ]
+      : p.log.errors,
     revenue: p.log.revenue + revenue,
     fines: p.log.fines + fine,
+  }
+  const falsified = accept && !legal && p.ship.lies.length > 0
+  const season: SeasonLog = {
+    vessels: p.season.vessels + 1,
+    illegalRejected: p.season.illegalRejected + (!accept && !legal ? 1 : 0),
+    illegalAccepted: p.season.illegalAccepted + (accept && !legal ? 1 : 0),
+    falsifiedAccepted: p.season.falsifiedAccepted + (falsified ? 1 : 0),
+    missedByTool: falsified
+      ? {
+          tracking: p.season.missedByTool.tracking + (p.ship.lies.includes('tracking') ? 1 : 0),
+          catch: p.season.missedByTool.catch + (p.ship.lies.includes('catch') ? 1 : 0),
+          license: p.season.missedByTool.license + (p.ship.lies.includes('license') ? 1 : 0),
+        }
+      : p.season.missedByTool,
+    legalRejected: p.season.legalRejected + (!accept && legal ? 1 : 0),
   }
   const money = p.money + revenue - fine
 
   if (biodiversity <= 0) {
-    return { ...p, biodiversity: 0, money, log, newDay: false, viewing: null, ticket, outcome: 'collapse' }
+    return { ...p, biodiversity: 0, money, log, season, newDay: false, viewing: null, ticket, outcome: 'collapse' }
   }
 
   const shift = { ...p.shift, vesselNumber: p.shift.vesselNumber + 1 }
@@ -218,6 +260,7 @@ export function resolveDecision(p: Progress, decision: Decision, rand: Rng): Pro
     biodiversity,
     money,
     log,
+    season,
     ship: nextShip(rand, p.ship.report.arrivalNo + 1, shift, p.regulations, biodiversity, p.blacklist),
     inspected: [],
     viewing: null,
