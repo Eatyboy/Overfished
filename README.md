@@ -78,7 +78,7 @@ Money is the port's operating budget (tuned in `src/data/economy.ts`). It pushes
 ### Falsified reports and verification
 - **Days 1–2:** every report is true.
 - **Day 2 onward:** 25% of illegal vessels that aren't falsifying their paperwork hand over a visibly flawed license, one of three kinds equally often: made out to a different vessel (usually one word off, e.g. *The Silver Petrel* vs *The Silver Pelican*), missing its stamp, or carrying a forged stamp (names the Port of Long Beach, red ink instead of blue, or square instead of round). Nothing is hidden: each breaks the Matching documents or License stamp rule right on the paperwork.
-- **Day 3:** 40% of illegal vessels hand over paperwork that passes every rule, with no discrepancies. No verification tools exist yet, so only the blacklist can catch them.
+- **Day 3:** 40% of illegal vessels hand over paperwork that passes every rule, with no discrepancies. No verification tools exist yet, so every one of them is on the blacklist, which is the only way to catch them.
 - **Day 4:** a Port Authority bulletin warns that some vessels falsify their reports and issues **Vessel Tracking**. The first vessel that day is a guided example: its paperwork looks clean, but tracking places it outside San Diego waters.
 - **Days 4–12:** more and more illegal vessels falsify their paperwork to look legal (30% of illegal vessels on Day 4, up to 60%). Each vessel has its **actual** activity (hidden) and its **reported** activity (on the documents), and decisions are judged on the actual activity.
 
@@ -88,7 +88,7 @@ Money is the port's operating budget (tuned in `src/data/economy.ts`). It pushes
 | Leaves illegal catches or bait off the report | 5 | Catch Verification (shop) |
 | Forged license claiming permits it doesn't have | 7 | License Database (shop) |
 
-**Blacklist (Day 3 onward):** each day a separate Blacklist slip on the desk lists 5–10 known offenders to reject on sight, and the list changes every day. A third of illegal vessels (including ones whose paperwork looks legal) sail under a blacklisted name, and legal vessels never do.
+**Blacklist (Day 3 onward):** each day a separate Blacklist slip on the desk lists 5–10 known offenders to reject on sight, and the list changes every day. A third of illegal vessels (including ones whose paperwork looks legal) sail under a blacklisted name, and legal vessels never do. On Day 3, before any verification tool exists, every illegal vessel with clean paperwork is blacklisted.
 
 **The desk:** every document (report, license, regulations, blacklist) can be dragged anywhere. Pressing one brings it to the front, and dropping it off the desk snaps it back on.
 

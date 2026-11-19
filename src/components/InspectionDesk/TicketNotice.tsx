@@ -11,7 +11,10 @@ interface TicketNoticeProps {
 
 const pad3 = (n: number) => String(n).padStart(3, '0')
 
-/** Pops up over the desk after a wrong decision, explaining what the player missed. */
+/**
+ * Pops up after a wrong decision, explaining what the player missed. It covers only the top strip
+ * (harbor window and stats) so the vessel's papers stay readable on the desk below.
+ */
 export function TicketNotice({ ticket, onDismiss }: TicketNoticeProps) {
   const button = useDismiss(onDismiss)
 
@@ -40,24 +43,26 @@ export function TicketNotice({ ticket, onDismiss }: TicketNoticeProps) {
           </p>
 
           {ticket.issues.length > 0 ? (
-            <>
-              <p className={styles.label}>You should have noticed</p>
-              <ul className={styles.issues}>
-                {ticket.issues.map((issue) => (
-                  <li key={issue}>{issue}</li>
-                ))}
-              </ul>
+            <div className={styles.columns}>
+              <div>
+                <p className={styles.label}>You should have noticed</p>
+                <ul className={styles.issues}>
+                  {ticket.issues.map((issue) => (
+                    <li key={issue}>{issue}</li>
+                  ))}
+                </ul>
+              </div>
               {ticket.hidden.length > 0 && (
-                <>
-                  <p className={`${styles.label} ${styles.spaced}`}>Its report was falsified. Verification would have shown</p>
+                <div>
+                  <p className={styles.label}>Its report was falsified. Verification would have shown</p>
                   <ul className={styles.issues}>
                     {ticket.hidden.map((line) => (
                       <li key={line}>{line}</li>
                     ))}
                   </ul>
-                </>
+                </div>
               )}
-            </>
+            </div>
           ) : (
             <p className={styles.legal}>
               This vessel was legal. It met every regulation in force today, and the fishing industry has filed a
@@ -67,6 +72,7 @@ export function TicketNotice({ ticket, onDismiss }: TicketNoticeProps) {
         </div>
 
         <footer className={styles.footer}>
+          <span className={styles.hint}>The papers on the desk are this vessel's.</span>
           <span className={styles.penalty}>
             {accepted
               ? `Marine Biodiversity −${BIODIVERSITY.wrongPenalty}%`

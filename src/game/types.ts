@@ -115,6 +115,8 @@ export interface Ticket {
   issues: string[]
   /** For falsified reports: what each verification tool would have revealed. */
   hidden: string[]
+  /** The vessel the player got wrong, kept on the desk while the ticket is open so they can see why. */
+  ship: Ship
 }
 
 /** Upgrades sold in the end-of-day shop. */

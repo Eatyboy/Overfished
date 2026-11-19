@@ -88,6 +88,8 @@ describe('decisions', () => {
     expect(p.biodiversity).toBe(BIODIVERSITY.start - BIODIVERSITY.wrongPenalty)
     expect(p.ticket).toMatchObject({ arrivalNo: 1, vesselName: start.ship.report.vesselName, decision: 'accept' })
     expect(p.ticket!.issues.length).toBeGreaterThan(0)
+    // the wrongly accepted vessel stays on the ticket so the desk can keep showing its papers
+    expect(p.ticket!.ship).toBe(start.ship)
   })
 
   it('fines a wrongly rejected legal vessel without touching biodiversity', () => {

@@ -1,7 +1,10 @@
-/* Covers the whole 1440×900 stage. */
+/* Covers only the top strip (stage y 64–359) so the papers on the desk stay visible. */
 .backdrop {
   position: absolute;
-  inset: 0;
+  left: 0;
+  top: 64px;
+  width: 1440px;
+  height: 295px;
   z-index: 10;
   display: grid;
   place-items: center;
@@ -10,8 +13,12 @@
 
 .ticket {
   position: relative;
-  width: 600px;
-  padding: 20px 28px 22px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: 1280px;
+  max-height: 271px;
+  padding: 12px 24px 14px;
   background: #ead7b0;
   color: var(--ink);
   border-top: 10px solid var(--red);
@@ -53,8 +60,8 @@
 }
 
 .title {
-  margin: 8px 0 0;
-  padding-bottom: 12px;
+  margin: 4px 0 0;
+  padding-bottom: 8px;
   border-bottom: 3px solid var(--ink);
   font-family: var(--font-pixel);
   font-weight: 400;
@@ -65,12 +72,22 @@
 }
 
 .body {
-  padding: 14px 0 16px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 10px 0 12px;
+  scrollbar-width: thin;
 }
 
 .summary {
-  margin: 0 0 14px;
-  font-size: 17px;
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
 }
 
 .vessel {
@@ -92,12 +109,8 @@
   line-height: 1.45;
 }
 
-.spaced {
-  margin-top: 14px;
-}
-
 .issues li + li {
-  margin-top: 6px;
+  margin-top: 4px;
 }
 
 .legal {
@@ -108,10 +121,18 @@
 
 .footer {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding-top: 14px;
+  gap: 24px;
+  padding-top: 10px;
   border-top: 2px dashed var(--paper-muted);
+}
+
+.hint {
+  flex: 1;
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--paper-muted);
 }
 
 .penalty {
@@ -122,7 +143,7 @@
 }
 
 .button {
-  padding: 10px 22px;
+  padding: 8px 20px;
   border: 0;
   border-top: 3px solid var(--tan-light);
   background: var(--tan);
@@ -152,7 +173,7 @@
 /* rubber stamp in the top-right corner */
 .stamp {
   position: absolute;
-  top: 26px;
+  top: 18px;
   right: 26px;
   padding: 6px 12px;
   border: 3px solid var(--red);

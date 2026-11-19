@@ -238,13 +238,17 @@ export function generateShip(rand: Rng, opts: GenerateOptions): Ship {
 /**
  * Give an illegal ship a blacklisted name (BLACKLIST.chance of the time), and make sure no other ship
  * shares a name with the blacklist. The guided example is never blacklisted, so it still teaches tracking.
+ * Before verification tools exist (Day 3), an illegal ship whose paperwork looks legal is always
+ * blacklisted: nothing else could catch it, so the player is never ticketed for an undetectable vessel.
  */
 function applyBlacklist(rand: Rng, ship: Ship, opts: GenerateOptions): Ship {
   const blacklist = opts.blacklist ?? []
   if (blacklist.length === 0) return ship
   const illegal = findViolations(ship.actual, opts.regulations, opts.ctx).length > 0
+  const undetectable =
+    illegal && opts.day < FALSIFIED_REPORTS.startDay && findViolations(ship, opts.regulations, opts.ctx).length === 0
   let name = ship.report.vesselName
-  if (illegal && !opts.requireLie && rand() < BLACKLIST.chance) name = pick(rand, blacklist)
+  if (illegal && !opts.requireLie && (undetectable || rand() < BLACKLIST.chance)) name = pick(rand, blacklist)
   else while (blacklist.includes(name)) name = generateVesselName(rand)
   if (name === ship.report.vesselName) return ship
   // A mismatched license stays mismatched: it names a vessel one word off from the new name.

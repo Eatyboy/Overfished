@@ -196,6 +196,7 @@ export function resolveDecision(p: Progress, decision: Decision, rand: Rng): Pro
           ? [`${p.ship.report.vesselName} is on today's blacklist.`, ...issues]
           : issues,
         hidden: p.ship.lies.map((tool) => revealedBy(p.ship, tool)),
+        ship: p.ship,
       }
   const log: DayLog = {
     ...p.log,

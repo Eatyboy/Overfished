@@ -53,6 +53,8 @@ export function InspectionDesk() {
   // The shift clock waits for the start-of-day briefing, and pauses while any notice is open.
   useShiftTimer(tick, briefing || ticket !== null || viewing !== null || bulletin)
 
+  // While a ticket is open the desk keeps showing the vessel the player got wrong.
+  const onDesk = ticket?.ship ?? ship
   const freeTotal = freeInspections({ owned })
   const available = useCallback((tool: Tool) => hasTool({ shift, owned }, tool), [shift, owned])
 
@@ -78,11 +80,11 @@ export function InspectionDesk() {
         <span className={styles.bolt} style={{ left: 50 }} aria-hidden="true" />
         <span className={styles.bolt} style={{ left: 1386 }} aria-hidden="true" />
 
-        <DecisionBar onDecide={decide} />
+        <DecisionBar reviewing={ticket !== null} onDecide={decide} />
 
         {/* Documents come after the decision bar so they can be laid over it. */}
-        <FishingReport report={ship.report} drag={drag('report')} />
-        <FishingLicense license={ship.license} priorViolations={ship.priorViolations} drag={drag('license')} />
+        <FishingReport report={onDesk.report} drag={drag('report')} />
+        <FishingLicense license={onDesk.license} priorViolations={onDesk.priorViolations} drag={drag('license')} />
         <PortRegulations shift={shift} regulations={regulations} drag={drag('regulations')} />
         {blacklist.length > 0 && <BlacklistDocument names={blacklist} drag={drag('blacklist')} />}
       </section>

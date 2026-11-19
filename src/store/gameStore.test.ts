@@ -141,7 +141,7 @@ describe('gameStore', () => {
   })
 
   it('dismisses the ticket', () => {
-    useGameStore.setState({ ticket: { arrivalNo: 1, vesselName: 'The Quiet Gull', decision: 'reject', issues: [], hidden: [] } })
+    useGameStore.setState({ ticket: { arrivalNo: 1, vesselName: 'The Quiet Gull', decision: 'reject', issues: [], hidden: [], ship: store().ship } })
     store().dismissTicket()
     expect(store().ticket).toBeNull()
   })

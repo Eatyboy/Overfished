@@ -73,3 +73,15 @@
 .reject:hover {
   background: var(--red-light);
 }
+
+.button:disabled {
+  cursor: default;
+  filter: grayscale(0.7) brightness(0.8);
+}
+
+.button:disabled:active {
+  transform: none;
+  box-shadow:
+    0 0 0 4px var(--ink),
+    8px 10px 0 4px var(--ink);
+}
