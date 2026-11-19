@@ -3,6 +3,9 @@ import { formatDate } from '../../game/date'
 import { ECONOMY, SHOP } from '../../data/economy'
 import styles from './DaySummary.module.css'
 
+/** Below this, the ledger warns that the fishery is close to collapse. */
+const LOW_BIODIVERSITY = 50
+
 const signed = (n: number) => (n < 0 ? `−$${-n}` : `+$${n}`)
 
 /** Between shifts: the day's ledger and the upgrade shop. */
@@ -74,6 +77,12 @@ export function DaySummary() {
             {Math.abs(bioChange)})
           </dd>
         </dl>
+
+        {biodiversity < LOW_BIODIVERSITY && (
+          <p className={styles.alarm}>
+            Fish stocks are crashing. Every illegal vessel accepted now brings the fishery closer to collapse.
+          </p>
+        )}
 
         <p className={styles.warning}>
           The port pays ${ECONOMY.operatingExpense} in operating expenses at 5 PM every day, already taken from today's

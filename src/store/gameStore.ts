@@ -79,6 +79,11 @@ export const useGameStore = create<GameState>()((set, get) => {
 
   /** While fading out, the state is about to be replaced: ignore input and the clock. */
   const fadingOut = () => get().fade === 'out'
+  /** A notice (briefing, bulletin, evidence or ticket) pauses the game until it's dismissed. */
+  const noticeOpen = () => {
+    const s = get()
+    return s.briefing || s.bulletin || s.ticket !== null || s.viewing !== null
+  }
 
   return {
     ...newGame(rand),
@@ -87,13 +92,13 @@ export const useGameStore = create<GameState>()((set, get) => {
     speed: 1,
     startShift: () => !fadingOut() && go({ ...newGame(rand), screen: 'desk' }),
     returnToTitle: () => !fadingOut() && go({ screen: 'title' }),
-    decide: (decision) => !fadingOut() && go(withScreen(resolveDecision(get(), decision, rand))),
+    decide: (decision) => !fadingOut() && !noticeOpen() && go(withScreen(resolveDecision(get(), decision, rand))),
     dismissTicket: () => set({ ticket: null }),
-    inspect: (tool) => !fadingOut() && set(inspect(get(), tool)),
+    inspect: (tool) => !fadingOut() && !noticeOpen() && set(inspect(get(), tool)),
     closeEvidence: () => set({ viewing: null }),
     dismissBriefing: () => set({ briefing: false }),
     dismissBulletin: () => set({ bulletin: false }),
-    tick: (ms) => !fadingOut() && go(withScreen(advanceTime(get(), ms * get().speed))),
+    tick: (ms) => !fadingOut() && !noticeOpen() && go(withScreen(advanceTime(get(), ms * get().speed))),
     buy: (item) => !fadingOut() && set(buy(get(), item)),
     nextDay: () => !fadingOut() && go(withScreen(startNextDay(get(), rand))),
     setSpeed: (speed) => set({ speed }),

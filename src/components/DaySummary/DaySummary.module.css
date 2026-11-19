@@ -254,3 +254,13 @@
   color: var(--red);
   text-transform: uppercase;
 }
+
+.alarm {
+  margin: 12px 0 0;
+  padding: 8px 10px;
+  border-left: 4px solid var(--red);
+  background: rgb(163 84 68 / 0.12);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--red);
+}

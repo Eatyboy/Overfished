@@ -6,19 +6,19 @@ import type { ShopItem, Tool } from '../game/types'
  */
 
 export const ECONOMY = {
-  startMoney: 200,
+  startMoney: 75,
   /** Port fees earned for every vessel accepted, legal or not. */
-  acceptRevenue: 40,
+  acceptRevenue: 15,
   /** Industry complaint charged for rejecting a legal vessel. */
-  wrongRejectFine: 20,
+  wrongRejectFine: 8,
   /** Paid at the end of each day. If the port can't cover it, the port is shut down. */
-  operatingExpense: 80,
+  operatingExpense: 30,
   /** Inspections per day that cost nothing. */
   freeInspections: 3,
   /** Free inspections per day with an Additional Inspector. */
   inspectorFreeInspections: 5,
   /** Cost of each inspection past the free ones. */
-  inspectionCost: 20,
+  inspectionCost: 8,
 }
 
 /** Percentage points of biodiversity each Habitat Restoration purchase restores at the start of every later day. */
@@ -41,7 +41,7 @@ export const SHOP: ShopItemDef[] = [
     id: 'catch',
     name: 'Catch Verification',
     description: 'Inspect the hold: compare reported catches, sizes and bait with what is on board.',
-    price: () => 150,
+    price: () => 55,
     max: 1,
     fromDay: 4,
   },
@@ -49,7 +49,7 @@ export const SHOP: ShopItemDef[] = [
     id: 'license',
     name: 'License Database',
     description: 'Look up the license number: see which permits are really on file.',
-    price: () => 200,
+    price: () => 75,
     max: 1,
     fromDay: 4,
   },
@@ -57,7 +57,7 @@ export const SHOP: ShopItemDef[] = [
     id: 'inspector',
     name: 'Additional Inspector',
     description: `Free inspections per day go from ${ECONOMY.freeInspections} to ${ECONOMY.inspectorFreeInspections}.`,
-    price: () => 100,
+    price: () => 40,
     max: 1,
     fromDay: 4,
   },
@@ -65,7 +65,7 @@ export const SHOP: ShopItemDef[] = [
     id: 'habitat',
     name: 'Habitat Restoration',
     description: `Restores +${HABITAT_RECOVERY_PER_LEVEL}% Marine Biodiversity at the start of every later day. Stacks.`,
-    price: (owned) => 100 + 50 * owned,
+    price: (owned) => 40 + 20 * owned,
     max: 5,
     fromDay: 1,
   },

@@ -68,12 +68,12 @@ Money is the port's operating budget (tuned in `src/data/economy.ts` with the ba
 
 | Event | Effect |
 | --- | --- |
-| Start | $200 |
-| Accept any vessel | +$40 port fees (an illegal one also costs biodiversity) |
-| Reject a legal vessel | −$20 industry complaint, plus a ticket |
+| Start | $75 |
+| Accept any vessel | +$15 port fees (an illegal one also costs biodiversity) |
+| Reject a legal vessel | −$8 industry complaint, plus a ticket |
 | Reject an illegal vessel | $0 |
-| Inspection | First 3 each day are free, then $20 each |
-| End of each day (5 PM) | −$80 operating expense. If the port can't pay, it shuts down |
+| Inspection | First 3 each day are free, then $8 each |
+| End of each day (5 PM) | −$30 operating expense. If the port can't pay, it shuts down |
 
 ### Falsified reports and verification
 - **Days 1–2:** every report is true.
@@ -99,10 +99,10 @@ After each shift the player sees the day's ledger and can buy upgrades:
 
 | Upgrade | Cost | Effect |
 | --- | --- | --- |
-| Catch Verification | $150 | Inspect the hold: real catches, sizes and bait |
-| License Database | $200 | See which permits are really on file |
-| Additional Inspector | $100 | Free inspections per day go from 3 to 5 |
-| Habitat Restoration | $100, +$50 each | +2% biodiversity at the start of every later day (stacks) |
+| Catch Verification | $55 | Inspect the hold: real catches, sizes and bait |
+| License Database | $75 | See which permits are really on file |
+| Additional Inspector | $40 | Free inspections per day go from 3 to 5 |
+| Habitat Restoration | $40, +$20 each | +2% biodiversity at the start of every later day (stacks) |
 
 ### Endings
 - **Collapse:** Marine Biodiversity hits 0% and the game ends early.

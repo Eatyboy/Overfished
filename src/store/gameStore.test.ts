@@ -7,6 +7,13 @@ const store = () => useGameStore.getState()
 /** Let any scene-change fade finish (black, swap, fade back in). */
 const settle = () => vi.advanceTimersByTime(2 * FADE_MS)
 
+/** Start a shift and close the start-of-day briefing, as a player would before playing. */
+const startPlaying = () => {
+  store().startShift()
+  settle()
+  store().dismissBriefing()
+}
+
 describe('gameStore', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -54,8 +61,7 @@ describe('gameStore', () => {
     })
 
     it('keep the old screen state until the screen is black', () => {
-      store().startShift()
-      settle()
+      startPlaying()
       store().tick(120_000)
       settle()
       expect(store().screen).toBe('summary')
@@ -74,13 +80,13 @@ describe('gameStore', () => {
       store().tick(10_000)
       vi.advanceTimersByTime(FADE_MS)
       expect(store().elapsedMs).toBe(0)
+      store().dismissBriefing()
       store().tick(10_000)
       expect(store().elapsedMs).toBe(10_000)
     })
 
     it('do not fade for changes on the same screen', () => {
-      store().startShift()
-      settle()
+      startPlaying()
       store().decide('accept')
       expect(store().fade).toBeNull()
       expect(store().shift.vesselNumber).toBe(2)
@@ -88,8 +94,7 @@ describe('gameStore', () => {
   })
 
   it('advances the shift clock, shows the day summary at 5 PM, then starts the next day', () => {
-    store().startShift()
-    settle()
+    startPlaying()
     store().tick(60_000)
     expect(store().elapsedMs).toBe(60_000)
     store().tick(120_000)
@@ -103,8 +108,7 @@ describe('gameStore', () => {
   })
 
   it('shows the game-over screen when the port cannot pay its operating expense', () => {
-    store().startShift()
-    settle()
+    startPlaying()
     useGameStore.setState({ money: 0 })
     store().tick(120_000)
     settle()
@@ -113,12 +117,12 @@ describe('gameStore', () => {
   })
 
   it('shows the game-over screen on collapse and resets on play again', () => {
-    store().startShift()
-    settle()
+    startPlaying()
     useGameStore.setState({ biodiversity: BIODIVERSITY.wrongPenalty })
     // Only accepting an illegal ship hurts biodiversity, so accept ships until one is illegal.
     for (let i = 0; i < 500 && store().screen === 'desk'; i++) {
       store().decide('accept')
+      store().dismissTicket()
       settle()
     }
 
@@ -164,8 +168,7 @@ describe('gameStore', () => {
   })
 
   it('runs the shift clock faster at a higher debug speed', () => {
-    store().startShift()
-    settle()
+    startPlaying()
     store().setSpeed(4)
     store().tick(1_000)
     expect(store().elapsedMs).toBe(4_000)
@@ -178,5 +181,27 @@ describe('gameStore', () => {
     store().endDay()
     settle()
     expect(store().screen).toBe('summary')
+  })
+
+  it('pauses the game while a notice is open: no decisions, inspections or clock', () => {
+    store().startShift()
+    settle()
+    expect(store().briefing).toBe(true)
+    const vessel = store().shift.vesselNumber
+    store().decide('accept')
+    store().tick(10_000)
+    expect(store().shift.vesselNumber).toBe(vessel)
+    expect(store().elapsedMs).toBe(0)
+
+    store().dismissBriefing()
+    useGameStore.setState({ ticket: { arrivalNo: 1, vesselName: 'The Quiet Gull', decision: 'reject', issues: [], hidden: [], ship: store().ship } })
+    store().decide('accept')
+    store().tick(10_000)
+    expect(store().shift.vesselNumber).toBe(vessel)
+    expect(store().elapsedMs).toBe(0)
+
+    store().dismissTicket()
+    store().decide('accept')
+    expect(store().shift.vesselNumber).toBe(vessel + 1)
   })
 })
