@@ -12,8 +12,9 @@ interface TicketNoticeProps {
 const pad3 = (n: number) => String(n).padStart(3, '0')
 
 /**
- * Pops up after a wrong decision, explaining what the player missed. It covers only the top strip
- * (harbor window and stats) so the vessel's papers stay readable on the desk below.
+ * Pops up after a wrong decision, explaining what the player missed. It sits in the top strip
+ * (harbor window and stats) so the vessel's papers stay readable on the desk below, but the whole
+ * game is paused and locked until it's dismissed.
  */
 export function TicketNotice({ ticket, onDismiss }: TicketNoticeProps) {
   const button = useDismiss(onDismiss)
@@ -21,9 +22,9 @@ export function TicketNotice({ ticket, onDismiss }: TicketNoticeProps) {
   const accepted = ticket.decision === 'accept'
 
   return (
-    <div className={styles.backdrop}>
+    <div className={`${styles.backdrop} ${styles.reviewBackdrop}`}>
       <article
-        className={styles.ticket}
+        className={`${styles.ticket} ${styles.review}`}
         role="alertdialog"
         aria-modal="true"
         aria-labelledby="ticket-title"
@@ -72,10 +73,14 @@ export function TicketNotice({ ticket, onDismiss }: TicketNoticeProps) {
         </div>
 
         <footer className={styles.footer}>
-          <span className={styles.hint}>The papers on the desk are this vessel's.</span>
+          <span className={styles.hint}>
+            {accepted
+              ? 'The port got paid. The ocean paid for it.'
+              : "The papers on the desk are this vessel's."}
+          </span>
           <span className={styles.penalty}>
             {accepted
-              ? `Marine Biodiversity −${BIODIVERSITY.wrongPenalty}%`
+              ? `Port fees +$${ECONOMY.acceptRevenue} · Marine Biodiversity −${BIODIVERSITY.wrongPenalty}%`
               : `Industry complaint −$${ECONOMY.wrongRejectFine}`}
           </span>
           <button ref={button} type="button" className={styles.button} onClick={onDismiss}>

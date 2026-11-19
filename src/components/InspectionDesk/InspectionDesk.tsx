@@ -50,8 +50,10 @@ export function InspectionDesk() {
 
   const drag = useDeskDocuments()
 
-  // The shift clock waits for the start-of-day briefing, and pauses while any notice is open.
-  useShiftTimer(tick, briefing || ticket !== null || viewing !== null || bulletin)
+  // The shift clock waits for the start-of-day briefing, and the whole game pauses while any notice is
+  // open: the clock stops and the desk is inert (no clicks, drags or keyboard focus) until it's dismissed.
+  const noticeOpen = briefing || ticket !== null || viewing !== null || bulletin
+  useShiftTimer(tick, noticeOpen)
 
   // While a ticket is open the desk keeps showing the vessel the player got wrong.
   const onDesk = ticket?.ship ?? ship
@@ -62,7 +64,7 @@ export function InspectionDesk() {
     <main className={styles.screen}>
       <DeskHeader shift={shift} minutes={minutes} />
 
-      <section className={styles.top}>
+      <section className={styles.top} inert={noticeOpen}>
         <HarborWindow
           // While a ticket is open the decided vessel is still at the booth.
           vesselNumber={ticket ? shift.vesselNumber - 1 : shift.vesselNumber}
@@ -81,7 +83,7 @@ export function InspectionDesk() {
         />
       </section>
 
-      <section className={styles.desk}>
+      <section className={styles.desk} inert={noticeOpen}>
         <span className={styles.bolt} style={{ left: 50 }} aria-hidden="true" />
         <span className={styles.bolt} style={{ left: 1386 }} aria-hidden="true" />
 

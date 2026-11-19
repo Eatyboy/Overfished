@@ -3,7 +3,8 @@
  * economy settings, then prints how each kind of player fares.
  *
  * Skipped in normal test runs. Run it with:
- *   npm run sim
+ *   npm run sim            (current fee and inspection price)
+ *   SIM_FULL=1 npm run sim (every combination)
  * The report is written to the path in SIM_OUT (default: balance-sim.txt).
  */
 import { writeFileSync } from 'node:fs'
@@ -28,6 +29,10 @@ interface Player {
   acceptAll: boolean
   inspects: boolean
   buysTools: boolean
+  /** Exploit: accept everything while biodiversity stays above this, then sit idle for the rest of the day. */
+  idleBelow?: number
+  /** Spend spare money on Habitat Restoration. */
+  buysHabitat?: boolean
 }
 
 const PLAYERS: Player[] = [
@@ -35,6 +40,7 @@ const PLAYERS: Player[] = [
   { name: 'careful, no shop', secondsPerVessel: 18, secondsPerInspection: 4, errorRate: 0.05, acceptAll: false, inspects: true, buysTools: false },
   { name: 'skims papers', secondsPerVessel: 10, secondsPerInspection: 0, errorRate: 0.15, acceptAll: false, inspects: false, buysTools: false },
   { name: 'accepts everyone', secondsPerVessel: 5, secondsPerInspection: 0, errorRate: 0, acceptAll: true, inspects: false, buysTools: false },
+  { name: 'spam, idle, habitat', secondsPerVessel: 5, secondsPerInspection: 0, errorRate: 0, acceptAll: true, inspects: false, buysTools: false, idleBelow: 40, buysHabitat: true },
 ]
 
 // ---- economy settings ----
@@ -52,7 +58,9 @@ const rising = (from: number, to: number) => (day: number) =>
   day < 4 ? from : Math.round(from + ((to - from) * (day - 3)) / (TOTAL_DAYS - 3))
 
 function grid(): Settings[] {
-  const expenses: [string, (day: number) => number][] = [
+  const expenses: [string, (day: number) => number][] = process.env.SIM_EXPENSES
+    ? process.env.SIM_EXPENSES.split(',').map((n) => [`$${n}`, flat(Number(n))])
+    : [
     ['$60', flat(60)],
     ['$80', flat(80)],
     ['$100', flat(100)],
@@ -60,8 +68,10 @@ function grid(): Settings[] {
     ['$80→$150', rising(80, 150)],
   ]
   const out: Settings[] = []
-  for (const revenue of [30, 40, 45])
-    for (const inspection of [10, 20])
+  const revenues = process.env.SIM_REVENUE ? [Number(process.env.SIM_REVENUE)] : process.env.SIM_FULL ? [30, 40, 45] : [ECONOMY.acceptRevenue]
+  const inspections = process.env.SIM_FULL ? [10, 20] : [ECONOMY.inspectionCost]
+  for (const revenue of revenues)
+    for (const inspection of inspections)
       for (const [name, expense] of expenses)
         out.push({ label: `fee $${revenue} · insp $${inspection} · cost ${name}`, revenue, inspection, expense })
   return out
@@ -111,6 +121,11 @@ function decideShip(p: Progress, player: Player, rand: Rng): { p: Progress; seco
 }
 
 function shop(p: Progress, player: Player, settings: Settings): Progress {
+  if (player.buysHabitat) {
+    const habitat = SHOP.find((d) => d.id === 'habitat')
+    const reserve = settings.expense(p.shift.day + 1)
+    while (habitat && p.owned.habitat < habitat.max && p.money - habitat.price(p.owned.habitat) >= reserve) p = buy(p, 'habitat')
+  }
   if (!player.buysTools) return p
   const reserve = settings.expense(p.shift.day + 1) + 40
   for (const item of TOOL_ITEMS) {
@@ -130,6 +145,10 @@ function playGame(seed: number, player: Player, settings: Settings): Result {
   while (!p.outcome) {
     ECONOMY.operatingExpense = settings.expense(p.shift.day)
     while (p.phase === 'shift' && !p.outcome) {
+      if (player.idleBelow !== undefined && p.biodiversity - 10 < player.idleBelow) {
+        p = advanceTime(p, SHIFT_CLOCK.realMs)
+        break
+      }
       const { p: next, seconds } = decideShip(p, player, rand)
       p = next.outcome ? next : advanceTime(next, seconds * 1000)
     }

@@ -15,8 +15,8 @@ import { CLOCK_STEPS, STEP_MS, clockMinutes, formatClock } from './clock'
 import { mulberry32 } from './random'
 import { newRegulations, regulationsForDay } from './regulations'
 import { BIODIVERSITY, SHIFT_CLOCK, TOTAL_DAYS } from '../data/start'
-import { ECONOMY, FALSIFIED_REPORTS, HABITAT_RECOVERY_PER_LEVEL } from '../data/economy'
-import type { Decision } from './types'
+import { ECONOMY, FALSIFIED_REPORTS, HABITAT_RECOVERY_PER_LEVEL, SHOP } from '../data/economy'
+import type { Decision, ShopItem } from './types'
 
 const DAY_MS = SHIFT_CLOCK.realMs
 
@@ -310,6 +310,8 @@ describe('verification', () => {
 })
 
 describe('shop', () => {
+  const priceOf = (item: ShopItem, owned: number) => SHOP.find((d) => d.id === item)!.price(owned)
+
   const summaryOn = (day: number, money = 1000): Progress => {
     let p = newGame(mulberry32(1))
     while (p.shift.day < day) p = nextDay(p)
@@ -320,7 +322,7 @@ describe('shop', () => {
     expect(buy(summaryOn(3), 'catch').owned.catch).toBe(0)
     const p = buy(summaryOn(4), 'catch')
     expect(p.owned.catch).toBe(1)
-    expect(p.money).toBe(1000 - 150)
+    expect(p.money).toBe(1000 - priceOf('catch', 0))
     expect(inspect(startNextDay(p, mulberry32(1)), 'catch').viewing).toBe('catch')
   })
 
@@ -336,9 +338,10 @@ describe('shop', () => {
   it('restores biodiversity gradually with habitat restoration, and gets pricier', () => {
     let p = { ...summaryOn(1), biodiversity: 50 }
     p = buy(p, 'habitat')
-    expect(p.money).toBe(900)
+    expect(p.money).toBe(1000 - priceOf('habitat', 0))
     p = buy(p, 'habitat')
-    expect(p.money).toBe(750)
+    expect(p.money).toBe(1000 - priceOf('habitat', 0) - priceOf('habitat', 1))
+    expect(priceOf('habitat', 1)).toBeGreaterThan(priceOf('habitat', 0))
     p = startNextDay(p, mulberry32(1))
     expect(p.biodiversity).toBe(50 + 2 * HABITAT_RECOVERY_PER_LEVEL)
   })
