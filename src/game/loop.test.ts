@@ -13,7 +13,7 @@ import {
 } from './loop'
 import { CLOCK_STEPS, STEP_MS, clockMinutes, formatClock } from './clock'
 import { mulberry32 } from './random'
-import { regulationsForDay } from './regulations'
+import { newRegulations, regulationsForDay } from './regulations'
 import { BIODIVERSITY, SHIFT_CLOCK, TOTAL_DAYS } from '../data/start'
 import { ECONOMY, FALSIFIED_REPORTS, HABITAT_RECOVERY_PER_LEVEL } from '../data/economy'
 import type { Decision } from './types'
@@ -159,6 +159,28 @@ describe('days', () => {
     expect(p.shift.day).toBe(TOTAL_DAYS)
     p = endDay({ ...p, money: 1000 })
     expect(p.outcome).toBe('complete')
+  })
+})
+
+describe('start-of-day briefing', () => {
+  it('opens on day 1 and on every day that adds a regulation', () => {
+    let p = newGame(mulberry32(1))
+    expect(p.briefing).toBe(true)
+    for (let day = 2; day <= TOTAL_DAYS; day++) {
+      p = nextDay({ ...p, briefing: false })
+      expect(p.shift.day).toBe(day)
+      expect(p.briefing).toBe(newRegulations(day).length > 0)
+    }
+  })
+
+  it('lists only the rules new that day', () => {
+    expect(newRegulations(1).map((r) => r.id)).toEqual(['san-diego-waters', 'off-limits'])
+    expect(newRegulations(2).map((r) => r.id)).toEqual(['sheepshead', 'matching-documents'])
+    expect(newRegulations(11)).toEqual([])
+  })
+
+  it('opens when skipping to a day', () => {
+    expect(skipToDay(newGame(mulberry32(1)), 7, mulberry32(2)).briefing).toBe(true)
   })
 })
 

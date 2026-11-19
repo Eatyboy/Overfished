@@ -17,6 +17,7 @@ import { DecisionBar } from './DecisionBar'
 import { TicketNotice } from './TicketNotice'
 import { EvidenceNotice } from './EvidenceNotice'
 import { BulletinNotice } from './BulletinNotice'
+import { BriefingNotice } from './BriefingNotice'
 import styles from './InspectionDesk.module.css'
 
 /**
@@ -31,6 +32,7 @@ export function InspectionDesk() {
   const inspectionsUsed = useGameStore((s) => s.inspectionsUsed)
   const inspected = useGameStore((s) => s.inspected)
   const viewing = useGameStore((s) => s.viewing)
+  const briefing = useGameStore((s) => s.briefing)
   const bulletin = useGameStore((s) => s.bulletin)
   const newDay = useGameStore((s) => s.newDay)
   const clock = useGameStore((s) => formatClock(clockMinutes(s.elapsedMs)))
@@ -43,12 +45,13 @@ export function InspectionDesk() {
   const dismissTicket = useGameStore((s) => s.dismissTicket)
   const inspect = useGameStore((s) => s.inspect)
   const closeEvidence = useGameStore((s) => s.closeEvidence)
+  const dismissBriefing = useGameStore((s) => s.dismissBriefing)
   const dismissBulletin = useGameStore((s) => s.dismissBulletin)
 
   const drag = useDeskDocuments()
 
-  // The shift clock pauses while any notice is open.
-  useShiftTimer(tick, ticket !== null || viewing !== null || bulletin)
+  // The shift clock waits for the start-of-day briefing, and pauses while any notice is open.
+  useShiftTimer(tick, briefing || ticket !== null || viewing !== null || bulletin)
 
   const freeTotal = freeInspections({ owned })
   const available = useCallback((tool: Tool) => hasTool({ shift, owned }, tool), [shift, owned])
@@ -75,7 +78,7 @@ export function InspectionDesk() {
         <span className={styles.bolt} style={{ left: 50 }} aria-hidden="true" />
         <span className={styles.bolt} style={{ left: 1386 }} aria-hidden="true" />
 
-        <DecisionBar arrivalNo={ship.report.arrivalNo} onDecide={decide} />
+        <DecisionBar onDecide={decide} />
 
         {/* Documents come after the decision bar so they can be laid over it. */}
         <FishingReport report={ship.report} drag={drag('report')} />
@@ -84,8 +87,10 @@ export function InspectionDesk() {
         {blacklist.length > 0 && <BlacklistDocument names={blacklist} drag={drag('blacklist')} />}
       </section>
 
-      {bulletin && <BulletinNotice onDismiss={dismissBulletin} />}
-      {!bulletin && viewing && <EvidenceNotice ship={ship} tool={viewing} onClose={closeEvidence} />}
+      {/* Start of day: the briefing first, then (Day 4) the bulletin. */}
+      {briefing && <BriefingNotice shift={shift} onDismiss={dismissBriefing} />}
+      {!briefing && bulletin && <BulletinNotice onDismiss={dismissBulletin} />}
+      {!briefing && !bulletin && viewing && <EvidenceNotice ship={ship} tool={viewing} onClose={closeEvidence} />}
       {ticket && <TicketNotice ticket={ticket} onDismiss={dismissTicket} />}
     </main>
   )

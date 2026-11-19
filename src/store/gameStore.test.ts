@@ -132,6 +132,14 @@ describe('gameStore', () => {
     expect(store().outcome).toBeNull()
   })
 
+  it('closes the start-of-day briefing', () => {
+    store().startShift()
+    settle()
+    expect(store().briefing).toBe(true)
+    store().dismissBriefing()
+    expect(store().briefing).toBe(false)
+  })
+
   it('dismisses the ticket', () => {
     useGameStore.setState({ ticket: { arrivalNo: 1, vesselName: 'The Quiet Gull', decision: 'reject', issues: [], hidden: [] } })
     store().dismissTicket()

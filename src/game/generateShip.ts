@@ -10,7 +10,8 @@ import {
   VESSEL_ADJECTIVES,
   VESSEL_NOUNS,
 } from '../data/pools'
-import { BLACKLIST, FALSIFIED_REPORTS } from '../data/economy'
+import { BLACKLIST, FALSIFIED_REPORTS, MISMATCHED_LICENSE } from '../data/economy'
+import { RULES } from '../data/regulations'
 
 interface GenerateOptions {
   arrivalNo: number
@@ -35,6 +36,13 @@ const SAN_DIEGO = FISHING_REGIONS.filter((r) => r.sanDiego).map((r) => r.name)
 
 export function generateVesselName(rand: Rng): string {
   return `The ${pick(rand, VESSEL_ADJECTIVES)} ${pick(rand, VESSEL_NOUNS)}`
+}
+
+/** A vessel name one word off from `name` (e.g. The Silver Petrel → The Silver Pelican), for a mismatched license. */
+export function misnamed(rand: Rng, name: string): string {
+  const [the, adjective, noun] = name.split(' ')
+  if (rand() < 0.5) return `${the} ${pick(rand, VESSEL_ADJECTIVES.filter((a) => a !== adjective))} ${noun}`
+  return `${the} ${adjective} ${pick(rand, VESSEL_NOUNS.filter((n) => n !== noun))}`
 }
 
 /** A day's blacklist: distinct vessel names, sized by BLACKLIST.size. */
@@ -184,6 +192,14 @@ function buildShip(rand: Rng, opts: GenerateOptions): Ship {
     if (lie) return { ...lie.shown, actual, lies: lie.lies, priorViolations: priorViolations(rand, true, false) }
   }
 
+  // Day 2+: an honest but illegal vessel whose license is made out to a different vessel.
+  const matchingRule = regulations.some((r) => r.id === RULES.matchingDocuments.id)
+  if (!legal && !requireLie && matchingRule && rand() < MISMATCHED_LICENSE.chance) {
+    const docs = randomDocuments(rand, opts.arrivalNo, ctx)
+    const mismatched = { ...docs, license: { ...docs.license, vesselName: misnamed(rand, docs.report.vesselName) } }
+    return { ...mismatched, actual: mismatched, lies: [], priorViolations: priorViolations(rand, false, false) }
+  }
+
   if (legal && allowed.length > 0 && rand() < FALSIFIED_REPORTS.innocentDiscrepancy) {
     return { ...actual, actual: innocentDiscrepancy(rand, actual, allowed), lies: [], priorViolations: priorViolations(rand, false, true) }
   }
@@ -203,11 +219,6 @@ export function generateShip(rand: Rng, opts: GenerateOptions): Ship {
   return applyBlacklist(rand, ship, opts)
 }
 
-const withName = (docs: Documents, vesselName: string): Documents => ({
-  report: { ...docs.report, vesselName },
-  license: { ...docs.license, vesselName },
-})
-
 /**
  * Give an illegal ship a blacklisted name (BLACKLIST.chance of the time), and make sure no other ship
  * shares a name with the blacklist. The guided example is never blacklisted, so it still teaches tracking.
@@ -220,5 +231,11 @@ function applyBlacklist(rand: Rng, ship: Ship, opts: GenerateOptions): Ship {
   if (illegal && !opts.requireLie && rand() < BLACKLIST.chance) name = pick(rand, blacklist)
   else while (blacklist.includes(name)) name = generateVesselName(rand)
   if (name === ship.report.vesselName) return ship
-  return { ...ship, ...withName(ship, name), actual: withName(ship.actual, name) }
+  // A mismatched license stays mismatched: it names a vessel one word off from the new name.
+  const licenseName = ship.license.vesselName === ship.report.vesselName ? name : misnamed(rand, name)
+  const rename = (d: Documents): Documents => ({
+    report: { ...d.report, vesselName: name },
+    license: { ...d.license, vesselName: licenseName },
+  })
+  return { ...ship, ...rename(ship), actual: rename(ship.actual) }
 }

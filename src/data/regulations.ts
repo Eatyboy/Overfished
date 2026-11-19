@@ -50,6 +50,15 @@ function seasonalIssue(
 
 /** Every regulation in the game, by id. Which ones are in force is set by DAY_REGULATIONS. */
 export const RULES = {
+  matchingDocuments: {
+    id: 'matching-documents',
+    title: 'Matching documents',
+    description: 'The vessel named on the fishing report must match the fishing license.',
+    findIssue: ({ report, license }) =>
+      report.vesselName === license.vesselName
+        ? null
+        : `The report is for ${report.vesselName}, but the license is for ${license.vesselName}.`,
+  },
   sanDiegoWaters: {
     id: 'san-diego-waters',
     title: 'San Diego waters only',
@@ -174,7 +183,7 @@ export const STATIC_REGULATIONS: Regulation[] = []
  */
 const ROLLOUT: Regulation[][] = [
   [R.sanDiegoWaters, R.offLimits], // 1  Jan
-  [R.sheepshead], //                   2  Feb
+  [R.sheepshead, R.matchingDocuments], // 2  Feb
   [R.oceanSalmon], //                 3  Mar
   [R.whiteSeabass], //                4  Apr
   [R.hmsPermit], //                   5  May

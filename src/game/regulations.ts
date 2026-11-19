@@ -6,6 +6,12 @@ export function regulationsForDay(day: number): Regulation[] {
   return [...STATIC_REGULATIONS, ...(DAY_REGULATIONS[day] ?? [])]
 }
 
+/** Rules that come into force on `day`: on Day 1, every starting rule. */
+export function newRegulations(day: number): Regulation[] {
+  const before = new Set(regulationsForDay(day - 1).map((r) => r.id))
+  return regulationsForDay(day).filter((r) => !before.has(r.id))
+}
+
 /**
  * Explanations of every rule the documents break. Empty means they comply.
  * Pass `ship.actual` to judge what a vessel really did, or the ship itself to judge its paperwork.

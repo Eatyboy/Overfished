@@ -90,6 +90,15 @@ export const FALSIFIED_REPORTS = {
   innocentDiscrepancy: 0.2,
 }
 
+/**
+ * From the day the Matching documents rule is in force (Day 2), some illegal vessels arrive with a license
+ * made out to a different vessel. Nothing is hidden: the mismatch is right there on the paperwork.
+ */
+export const MISMATCHED_LICENSE = {
+  /** Chance per illegal vessel that isn't already falsifying its paperwork. */
+  chance: 0.25,
+}
+
 /** From Day 3, the port posts a daily blacklist of known offenders. */
 export const BLACKLIST = {
   fromDay: 3,

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { addMonths, compareDates, dateOfDay, formatDate } from './date'
-import { generateBlacklist, generateShip } from './generateShip'
+import { generateBlacklist, generateShip, misnamed } from './generateShip'
 import { mulberry32 } from './random'
 import { findViolations, regulationsForDay } from './regulations'
 import { FISHING_REGIONS, SPECIES, SPECIES_NAMES } from '../data/pools'
 import { DAY_REGULATIONS, RULES } from '../data/regulations'
 import { START_DATE, TOTAL_DAYS } from '../data/start'
-import { BLACKLIST, FALSIFIED_REPORTS } from '../data/economy'
+import { BLACKLIST, FALSIFIED_REPORTS, MISMATCHED_LICENSE } from '../data/economy'
 import type { CatchEntry, Documents, FishingLicense, FishingReport, InspectionContext, Regulation } from './types'
 
 // ---- helpers ----
@@ -143,6 +143,15 @@ describe('regulations', () => {
     expect(passes(RULES.leopardShark, [fish('Leopard Shark', 40, 'Longline')])).toBe(false)
   })
 
+  it('requires the report and license to name the same vessel', () => {
+    expect(passes(RULES.matchingDocuments, [fish('Yellowtail')])).toBe(true)
+    expect(passes(RULES.matchingDocuments, [fish('Yellowtail')], on(7), {}, { vesselName: 'The Quiet Gulf' })).toBe(false)
+    const rule: Regulation = RULES.matchingDocuments
+    expect(rule.findIssue(makeShip({}, { vesselName: 'The Quiet Tide' }), on(7))).toBe(
+      'The report is for The Quiet Gull, but the license is for The Quiet Tide.',
+    )
+  })
+
   it('bans tilapia bait', () => {
     expect(passes(RULES.tilapiaBait, [fish('Yellowtail')], on(7), { bait: 'Tilapia' })).toBe(false)
     expect(passes(RULES.tilapiaBait, [fish('Yellowtail')], on(7), { bait: 'Squid' })).toBe(true)
@@ -195,6 +204,11 @@ describe('rollout', () => {
     expect(regulationsForDay(1).map((r) => r.id)).toEqual(['san-diego-waters', 'off-limits'])
   })
 
+  it('adds Matching documents on day 2', () => {
+    expect(regulationsForDay(1).map((r) => r.id)).not.toContain('matching-documents')
+    expect(regulationsForDay(2).map((r) => r.id)).toContain('matching-documents')
+  })
+
   it('never drops a rule and uses every rule by the last day', () => {
     for (let day = 2; day <= TOTAL_DAYS; day++) {
       const prev = DAY_REGULATIONS[day - 1].map((r) => r.id)
@@ -228,7 +242,9 @@ describe('generateShip', () => {
           expect(c.sizeIn).toBeLessThanOrEqual(def.sizeIn[1])
           expect(def.gear).toContain(c.gear)
         }
-        expect(license.vesselName).toBe(report.vesselName)
+        if (license.vesselName !== report.vesselName) {
+          expect(findViolations({ report, license }, regulations, ctx).map((r) => r.id)).toContain('matching-documents')
+        }
         expect(license.licenseNumber).toMatch(/^L-\d{6}$/)
         expect(compareDates(license.expires, date)).toBeGreaterThan(0)
       }
@@ -369,8 +385,8 @@ describe('blacklist', () => {
       const cleanLooking = illegal.filter((s) => findViolations(s, regulations, ctx).length === 0)
       expect(cleanLooking.filter(listed).length).toBeGreaterThan(0)
       for (const s of illegal.filter(listed)) {
-        expect(s.license.vesselName).toBe(s.report.vesselName)
         expect(s.actual.report.vesselName).toBe(s.report.vesselName)
+        expect(s.actual.license.vesselName).toBe(s.license.vesselName)
       }
     }
   })
@@ -382,5 +398,62 @@ describe('blacklist', () => {
       const s = generateShip(mulberry32(i), { arrivalNo: 1, day, regulations: regulationsForDay(day), ctx, requireLie: 'tracking', blacklist })
       expect(listed(s)).toBe(false)
     }
+  })
+})
+
+// ---- mismatched licenses ----
+
+describe('mismatched licenses', () => {
+  const shipsOn = (day: number, n = 1500) => {
+    const ctx = { date: dateOfDay(START_DATE, day), biodiversity: 100 }
+    const regulations = regulationsForDay(day)
+    const ships = Array.from({ length: n }, (_, i) => generateShip(mulberry32(9000 + i), { arrivalNo: 1, day, regulations, ctx }))
+    const illegal = ships.filter((s) => findViolations(s.actual, regulations, ctx).length > 0)
+    const mismatched = ships.filter((s) => s.license.vesselName !== s.report.vesselName)
+    return { ships, illegal, mismatched, regulations, ctx }
+  }
+
+  it('name a vessel one word off', () => {
+    for (let i = 0; i < 50; i++) {
+      const name = misnamed(mulberry32(i), 'The Silver Petrel')
+      expect(name).not.toBe('The Silver Petrel')
+      const [, a, n] = name.split(' ')
+      expect(Number(a === 'Silver') + Number(n === 'Petrel')).toBe(1)
+    }
+  })
+
+  it('never appear on day 1, before the Matching documents rule', () => {
+    expect(shipsOn(1, 400).mismatched).toEqual([])
+  })
+
+  it('appear from day 2 on illegal vessels only, in plain sight', () => {
+    for (const day of [2, 3, 6, 12]) {
+      const { illegal, mismatched, regulations, ctx } = shipsOn(day)
+      expect(mismatched.length).toBeGreaterThan(0)
+      for (const s of mismatched) {
+        expect(illegal).toContain(s)
+        expect(s.lies).toEqual([])
+        expect(s.actual).toEqual({ report: s.report, license: s.license })
+        expect(findViolations(s, regulations, ctx).map((r) => r.id)).toContain('matching-documents')
+      }
+    }
+  })
+
+  it('make up about a quarter of illegal vessels on day 2', () => {
+    const { illegal, mismatched } = shipsOn(2)
+    const rate = mismatched.length / illegal.length
+    expect(rate).toBeGreaterThan(MISMATCHED_LICENSE.chance - 0.06)
+    expect(rate).toBeLessThan(MISMATCHED_LICENSE.chance + 0.06)
+  })
+
+  it('stay mismatched when the vessel is given a blacklisted name', () => {
+    const blacklist = ['The Iron Gull', 'The Quiet Tide', 'The Lucky Heron', 'The Salty Anchor', 'The Golden Marlin']
+    const day = 6
+    const ctx = { date: dateOfDay(START_DATE, day), biodiversity: 100 }
+    const ships = Array.from({ length: 2000 }, (_, i) =>
+      generateShip(mulberry32(i), { arrivalNo: 1, day, regulations: regulationsForDay(day), ctx, blacklist }),
+    )
+    const listedMismatch = ships.filter((s) => blacklist.includes(s.report.vesselName) && s.license.vesselName !== s.report.vesselName)
+    expect(listedMismatch.length).toBeGreaterThan(0)
   })
 })

@@ -2,13 +2,10 @@ import type { Decision } from '../../game/types'
 import styles from './DecisionBar.module.css'
 
 interface DecisionBarProps {
-  arrivalNo: number
   onDecide: (decision: Decision) => void
 }
 
-const pad3 = (n: number) => String(n).padStart(3, '0')
-
-export function DecisionBar({ arrivalNo, onDecide }: DecisionBarProps) {
+export function DecisionBar({ onDecide }: DecisionBarProps) {
   return (
     <>
       <button

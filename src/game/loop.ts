@@ -4,7 +4,7 @@ import { dateOfDay } from './date'
 import { revealedBy } from './evidence'
 import { generateBlacklist, generateShip } from './generateShip'
 import type { Rng } from './random'
-import { findIssues, regulationsForDay } from './regulations'
+import { findIssues, newRegulations, regulationsForDay } from './regulations'
 import { BIODIVERSITY, PORT, START_DATE, TOTAL_DAYS } from '../data/start'
 import { BLACKLIST, ECONOMY, FALSIFIED_REPORTS, HABITAT_RECOVERY_PER_LEVEL, SHOP } from '../data/economy'
 
@@ -32,6 +32,8 @@ export interface Progress {
   inspected: Tool[]
   /** Evidence currently open, or null. */
   viewing: Tool | null
+  /** Show the start-of-day briefing on the regulations new today. The shift clock waits until it's closed. */
+  briefing: boolean
   /** Show the Port Authority bulletin about falsified reports (start of Day 4). */
   bulletin: boolean
   /** True from the start of day 2+ until the first decision, to show habitat recovery. */
@@ -139,6 +141,7 @@ export function newGame(rand: Rng): Progress {
     inspectionsUsed: 0,
     inspected: [],
     viewing: null,
+    briefing: newRegulations(1).length > 0,
     bulletin: false,
     newDay: false,
     ticket: null,
@@ -234,7 +237,7 @@ export function advanceTime(p: Progress, ms: number): Progress {
   const elapsedMs = p.elapsedMs + ms
   if (!isShiftOver(elapsedMs)) return { ...p, elapsedMs }
 
-  const closed = { ...p, elapsedMs, viewing: null, ticket: null, bulletin: false }
+  const closed = { ...p, elapsedMs, viewing: null, ticket: null, briefing: false, bulletin: false }
   const expense = ECONOMY.operatingExpense
   if (p.money < expense) return { ...closed, outcome: 'bankrupt' }
 
@@ -285,6 +288,7 @@ function beginDay(p: Progress, day: number, biodiversity: number, rand: Rng): Pr
     inspectionsUsed: 0,
     inspected: [],
     viewing: null,
+    briefing: newRegulations(shift.day).length > 0,
     bulletin: shift.day === FALSIFIED_REPORTS.startDay,
     newDay: false,
     ticket: null,

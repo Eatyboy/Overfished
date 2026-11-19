@@ -34,6 +34,8 @@ export interface GameState extends Progress {
   /** Use a verification tool on the ship at the booth. */
   inspect: (tool: Tool) => void
   closeEvidence: () => void
+  /** Close the start-of-day briefing, starting the shift clock. */
+  dismissBriefing: () => void
   dismissBulletin: () => void
   /** Advance the shift clock by `ms` of real time. */
   tick: (ms: number) => void
@@ -82,6 +84,7 @@ export const useGameStore = create<GameState>()((set, get) => {
     dismissTicket: () => set({ ticket: null }),
     inspect: (tool) => !fadingOut() && set(inspect(get(), tool)),
     closeEvidence: () => set({ viewing: null }),
+    dismissBriefing: () => set({ briefing: false }),
     dismissBulletin: () => set({ bulletin: false }),
     tick: (ms) => !fadingOut() && go(withScreen(advanceTime(get(), ms))),
     buy: (item) => !fadingOut() && set(buy(get(), item)),
