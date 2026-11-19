@@ -74,7 +74,12 @@ export const SHOP: ShopItemDef[] = [
 export const FALSIFIED_REPORTS = {
   /** Day the Port Authority bulletin announces falsified reports and issues Vessel Tracking. */
   startDay: 4,
-  /** Chance that an illegal vessel falsifies its paperwork to look legal, by day. */
+  /**
+   * Day 3, before any verification tool exists: this share of illegal vessels hand over paperwork that passes
+   * every rule. Only the blacklist can catch them.
+   */
+  cleanPaperwork: { day: 3, chance: 0.4 },
+  /** Chance that an illegal vessel falsifies its paperwork to look legal, by day (from Day 4). */
   chance: (day: number) => (day < 4 ? 0 : Math.min(0.6, 0.3 + 0.05 * (day - 4))),
   /** First day each kind of lie appears, so lies come in about when the tool to catch them can be bought. */
   lieFromDay: { tracking: 4, catch: 5, license: 7 } satisfies Record<Tool, number>,
@@ -83,6 +88,15 @@ export const FALSIFIED_REPORTS = {
    * so a mismatch alone doesn't prove a vessel is illegal.
    */
   innocentDiscrepancy: 0.2,
+}
+
+/** From Day 3, the port posts a daily blacklist of known offenders. */
+export const BLACKLIST = {
+  fromDay: 3,
+  /** Names on each day's list. */
+  size: [5, 10] as [number, number],
+  /** Chance an illegal vessel is on the list, whether or not its paperwork looks legal. Legal vessels never are. */
+  chance: 1 / 3,
 }
 
 export const TOOL_NAMES: Record<Tool, string> = {

@@ -35,6 +35,7 @@ export function InspectionDesk() {
   const tick = useGameStore((s) => s.tick)
   const ship = useGameStore((s) => s.ship)
   const regulations = useGameStore((s) => s.regulations)
+  const blacklist = useGameStore((s) => s.blacklist)
   const decide = useGameStore((s) => s.decide)
   const ticket = useGameStore((s) => s.ticket)
   const dismissTicket = useGameStore((s) => s.dismissTicket)
@@ -72,7 +73,7 @@ export function InspectionDesk() {
 
         <FishingReport report={ship.report} />
         <FishingLicense license={ship.license} priorViolations={ship.priorViolations} />
-        <PortRegulations shift={shift} regulations={regulations} />
+        <PortRegulations shift={shift} regulations={regulations} blacklist={blacklist} />
         <DecisionBar arrivalNo={ship.report.arrivalNo} onDecide={decide} />
       </section>
 

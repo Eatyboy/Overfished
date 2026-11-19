@@ -48,7 +48,7 @@ describe('gameStore', () => {
   it('shows the game-over screen when the port cannot pay its operating expense', () => {
     useGameStore.getState().startShift()
     useGameStore.setState({ money: 0 })
-    useGameStore.getState().tick(240_000)
+    useGameStore.getState().tick(180_000)
     expect(useGameStore.getState().screen).toBe('gameOver')
     expect(useGameStore.getState().outcome).toBe('bankrupt')
   })

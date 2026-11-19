@@ -10,7 +10,7 @@ import {
   VESSEL_ADJECTIVES,
   VESSEL_NOUNS,
 } from '../data/pools'
-import { FALSIFIED_REPORTS } from '../data/economy'
+import { BLACKLIST, FALSIFIED_REPORTS } from '../data/economy'
 
 interface GenerateOptions {
   arrivalNo: number
@@ -23,6 +23,8 @@ interface GenerateOptions {
   legalChance?: number
   /** Force an illegal ship whose report hides its violation with this kind of lie (the guided example). */
   requireLie?: Tool
+  /** Today's blacklisted vessel names. Illegal ships sometimes carry one; legal ships never do. */
+  blacklist?: readonly string[]
 }
 
 /** Resampling cap; if no ship of the wanted kind turns up, the last one is used. */
@@ -33,6 +35,14 @@ const SAN_DIEGO = FISHING_REGIONS.filter((r) => r.sanDiego).map((r) => r.name)
 
 export function generateVesselName(rand: Rng): string {
   return `The ${pick(rand, VESSEL_ADJECTIVES)} ${pick(rand, VESSEL_NOUNS)}`
+}
+
+/** A day's blacklist: distinct vessel names, sized by BLACKLIST.size. */
+export function generateBlacklist(rand: Rng): string[] {
+  const size = randInt(rand, ...BLACKLIST.size)
+  const names = new Set<string>()
+  while (names.size < size) names.add(generateVesselName(rand))
+  return [...names]
 }
 
 function generateCatch(rand: Rng): CatchEntry[] {
@@ -141,15 +151,32 @@ function priorViolations(rand: Rng, lied: boolean, legal: boolean): number {
   return rand() < 0.15 ? 1 : 0
 }
 
-function buildShip(rand: Rng, opts: GenerateOptions): Ship {
-  const { arrivalNo, day, regulations, ctx, legalChance = 0.5, requireLie } = opts
-  const wantLegal = requireLie ? false : rand() < legalChance
+/** Random documents that are legal (or illegal), resampling up to MAX_TRIES times. */
+function randomActual(rand: Rng, opts: GenerateOptions, wantLegal: boolean): Documents {
+  const { arrivalNo, regulations, ctx } = opts
   let actual = randomDocuments(rand, arrivalNo, ctx)
   for (let i = 1; i < MAX_TRIES; i++) {
     if ((findViolations(actual, regulations, ctx).length === 0) === wantLegal) break
     actual = randomDocuments(rand, arrivalNo, ctx)
   }
+  return actual
+}
+
+function buildShip(rand: Rng, opts: GenerateOptions): Ship {
+  const { day, regulations, ctx, legalChance = 0.5, requireLie } = opts
+  const wantLegal = requireLie ? false : rand() < legalChance
+  let actual = randomActual(rand, opts, wantLegal)
   const legal = findViolations(actual, regulations, ctx).length === 0
+
+  // Day 3: some illegal vessels present paperwork with nothing wrong on it, before any tool can check it.
+  const clean = FALSIFIED_REPORTS.cleanPaperwork
+  if (!legal && !requireLie && day === clean.day && rand() < clean.chance) {
+    for (let i = 0; i < MAX_TRIES; i++) {
+      const lie = falsify(rand, actual, TOOLS, regulations, ctx)
+      if (lie) return { ...lie.shown, actual, lies: lie.lies, priorViolations: priorViolations(rand, true, false) }
+      actual = randomActual(rand, opts, false)
+    }
+  }
   const allowed = requireLie ? [requireLie] : TOOLS.filter((t) => day >= FALSIFIED_REPORTS.lieFromDay[t])
 
   if (!legal && allowed.length > 0 && (requireLie || rand() < FALSIFIED_REPORTS.chance(day))) {
@@ -170,7 +197,28 @@ function buildShip(rand: Rng, opts: GenerateOptions): Ship {
  */
 export function generateShip(rand: Rng, opts: GenerateOptions): Ship {
   let ship = buildShip(rand, opts)
-  if (!opts.requireLie) return ship
-  for (let i = 1; i < MAX_TRIES && !ship.lies.includes(opts.requireLie); i++) ship = buildShip(rand, opts)
-  return ship
+  for (let i = 1; opts.requireLie && i < MAX_TRIES && !ship.lies.includes(opts.requireLie); i++) {
+    ship = buildShip(rand, opts)
+  }
+  return applyBlacklist(rand, ship, opts)
+}
+
+const withName = (docs: Documents, vesselName: string): Documents => ({
+  report: { ...docs.report, vesselName },
+  license: { ...docs.license, vesselName },
+})
+
+/**
+ * Give an illegal ship a blacklisted name (BLACKLIST.chance of the time), and make sure no other ship
+ * shares a name with the blacklist. The guided example is never blacklisted, so it still teaches tracking.
+ */
+function applyBlacklist(rand: Rng, ship: Ship, opts: GenerateOptions): Ship {
+  const blacklist = opts.blacklist ?? []
+  if (blacklist.length === 0) return ship
+  const illegal = findViolations(ship.actual, opts.regulations, opts.ctx).length > 0
+  let name = ship.report.vesselName
+  if (illegal && !opts.requireLie && rand() < BLACKLIST.chance) name = pick(rand, blacklist)
+  else while (blacklist.includes(name)) name = generateVesselName(rand)
+  if (name === ship.report.vesselName) return ship
+  return { ...ship, ...withName(ship, name), actual: withName(ship.actual, name) }
 }

@@ -2,11 +2,11 @@ import type { DayLog, Decision, Outcome, Regulation, ShiftInfo, Ship, ShopItem, 
 import { isShiftOver } from './clock'
 import { dateOfDay } from './date'
 import { revealedBy } from './evidence'
-import { generateShip } from './generateShip'
+import { generateBlacklist, generateShip } from './generateShip'
 import type { Rng } from './random'
 import { findIssues, regulationsForDay } from './regulations'
 import { BIODIVERSITY, PORT, START_DATE, TOTAL_DAYS } from '../data/start'
-import { ECONOMY, FALSIFIED_REPORTS, HABITAT_RECOVERY_PER_LEVEL, SHOP } from '../data/economy'
+import { BLACKLIST, ECONOMY, FALSIFIED_REPORTS, HABITAT_RECOVERY_PER_LEVEL, SHOP } from '../data/economy'
 
 /** `shift` while inspecting; `summary` for the end-of-day ledger and shop. */
 export type Phase = 'shift' | 'summary'
@@ -22,6 +22,8 @@ export interface Progress {
   money: number
   ship: Ship
   regulations: Regulation[]
+  /** Today's blacklisted vessel names (from Day 3). Every vessel on it is illegal. */
+  blacklist: string[]
   /** Shop purchases so far. */
   owned: Record<ShopItem, number>
   /** Inspections used today (free ones first, then paid). */
@@ -100,7 +102,14 @@ export function isCorrectDecision(
   return isLegal(ship, regulations, ctx) === (decision === 'accept')
 }
 
-function nextShip(rand: Rng, arrivalNo: number, shift: ShiftInfo, regulations: Regulation[], biodiversity: number) {
+function nextShip(
+  rand: Rng,
+  arrivalNo: number,
+  shift: ShiftInfo,
+  regulations: Regulation[],
+  biodiversity: number,
+  blacklist: string[],
+) {
   // The first vessel after the Day 4 bulletin is the guided example: a report hiding where it fished.
   const guided = shift.day === FALSIFIED_REPORTS.startDay && shift.vesselNumber === 1
   return generateShip(rand, {
@@ -109,6 +118,7 @@ function nextShip(rand: Rng, arrivalNo: number, shift: ShiftInfo, regulations: R
     regulations,
     ctx: { date: shift.date, biodiversity },
     requireLie: guided ? 'tracking' : undefined,
+    blacklist,
   })
 }
 
@@ -123,7 +133,8 @@ export function newGame(rand: Rng): Progress {
     biodiversity,
     money: ECONOMY.startMoney,
     regulations,
-    ship: nextShip(rand, 1, shift, regulations, biodiversity),
+    blacklist: [],
+    ship: nextShip(rand, 1, shift, regulations, biodiversity, []),
     owned: { catch: 0, license: 0, inspector: 0, habitat: 0 },
     inspectionsUsed: 0,
     inspected: [],
@@ -178,7 +189,9 @@ export function resolveDecision(p: Progress, decision: Decision, rand: Rng): Pro
         arrivalNo: p.ship.report.arrivalNo,
         vesselName: p.ship.report.vesselName,
         decision,
-        issues,
+        issues: p.blacklist.includes(p.ship.report.vesselName)
+          ? [`${p.ship.report.vesselName} is on today's blacklist.`, ...issues]
+          : issues,
         hidden: p.ship.lies.map((tool) => revealedBy(p.ship, tool)),
       }
   const log: DayLog = {
@@ -202,7 +215,7 @@ export function resolveDecision(p: Progress, decision: Decision, rand: Rng): Pro
     biodiversity,
     money,
     log,
-    ship: nextShip(rand, p.ship.report.arrivalNo + 1, shift, p.regulations, biodiversity),
+    ship: nextShip(rand, p.ship.report.arrivalNo + 1, shift, p.regulations, biodiversity, p.blacklist),
     inspected: [],
     viewing: null,
     newDay: false,
@@ -246,6 +259,7 @@ export function startNextDay(p: Progress, rand: Rng): Progress {
   const shift = shiftForDay(p.shift.day + 1)
   const regulations = regulationsForDay(shift.day)
   const biodiversity = clamp(p.biodiversity + habitatRecovery(p))
+  const blacklist = shift.day >= BLACKLIST.fromDay ? generateBlacklist(rand) : []
   return {
     ...p,
     phase: 'shift',
@@ -253,7 +267,8 @@ export function startNextDay(p: Progress, rand: Rng): Progress {
     elapsedMs: 0,
     biodiversity,
     regulations,
-    ship: nextShip(rand, p.ship.report.arrivalNo + 1, shift, regulations, biodiversity),
+    blacklist,
+    ship: nextShip(rand, p.ship.report.arrivalNo + 1, shift, regulations, biodiversity, blacklist),
     inspectionsUsed: 0,
     inspected: [],
     viewing: null,

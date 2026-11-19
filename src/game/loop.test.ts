@@ -44,18 +44,18 @@ function gameWith(legal: boolean): Progress {
 }
 
 describe('shift clock', () => {
-  it('runs 9 AM to 5 PM in 30-minute steps over 4 minutes', () => {
+  it('runs 9 AM to 5 PM in 30-minute steps over 3 minutes', () => {
     expect(CLOCK_STEPS).toBe(16)
-    expect(STEP_MS).toBe(15_000)
-    expect(DAY_MS).toBe(240_000)
+    expect(STEP_MS).toBe(11_250)
+    expect(DAY_MS).toBe(180_000)
   })
 
   it('shows the time in half-hour steps', () => {
     expect(formatClock(clockMinutes(0))).toBe('9:00 AM')
-    expect(formatClock(clockMinutes(14_999))).toBe('9:00 AM')
-    expect(formatClock(clockMinutes(15_000))).toBe('9:30 AM')
-    expect(formatClock(clockMinutes(6 * 15_000))).toBe('12:00 PM')
-    expect(formatClock(clockMinutes(7 * 15_000))).toBe('12:30 PM')
+    expect(formatClock(clockMinutes(11_249))).toBe('9:00 AM')
+    expect(formatClock(clockMinutes(11_250))).toBe('9:30 AM')
+    expect(formatClock(clockMinutes(6 * 11_250))).toBe('12:00 PM')
+    expect(formatClock(clockMinutes(7 * 11_250))).toBe('12:30 PM')
     expect(formatClock(clockMinutes(DAY_MS))).toBe('5:00 PM')
     expect(formatClock(clockMinutes(DAY_MS * 2))).toBe('5:00 PM')
   })
@@ -166,6 +166,29 @@ describe('verification', () => {
     while (p.shift.day < day) p = nextDay(p)
     return p
   }
+
+  it('posts a blacklist from day 3, fresh each day', () => {
+    let p = newGame(mulberry32(1))
+    expect(p.blacklist).toEqual([])
+    p = nextDay(p)
+    expect(p.blacklist).toEqual([])
+    p = nextDay(p)
+    expect(p.shift.day).toBe(3)
+    expect(p.blacklist.length).toBeGreaterThanOrEqual(5)
+    const day3 = p.blacklist
+    p = startNextDay(endDay({ ...p, money: 1000 }), mulberry32(10))
+    expect(p.blacklist.length).toBeGreaterThanOrEqual(5)
+    expect(p.blacklist).not.toEqual(day3)
+  })
+
+  it('tickets an accepted blacklisted vessel, saying it was on the blacklist', () => {
+    let p = toDay(3)
+    const rand = mulberry32(7)
+    while (!p.blacklist.includes(p.ship.report.vesselName)) p = { ...resolveDecision(p, 'reject', rand), ticket: null }
+    const name = p.ship.report.vesselName
+    p = resolveDecision(p, 'accept', rand)
+    expect(p.ticket!.issues[0]).toBe(`${name} is on today's blacklist.`)
+  })
 
   it('has no tools before day 4', () => {
     const p = toDay(3)

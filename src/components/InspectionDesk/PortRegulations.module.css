@@ -57,6 +57,34 @@
   font-size: 13px;
 }
 
+/* Daily list of known offenders, under the rules (from Day 3). */
+.blacklist {
+  margin-bottom: 12px;
+  padding: 8px 12px 10px;
+  border: 2px solid var(--red);
+}
+
+.blacklistTitle {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--red);
+}
+
+.names {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 12px;
+  row-gap: 2px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
 .footer {
   padding-top: 12px;
   border-top: 2px solid var(--ink);

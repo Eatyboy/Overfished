@@ -17,7 +17,7 @@ You're the inspector at the Port of San Diego. Ships come in one at a time, each
 3. **Accept** or **reject** the ship.
 4. Repeat until the shift ends, then pay the port's operating expense, review the day's ledger, and shop for upgrades.
 
-The game takes place in **2026** and lasts up to **12 days**, one for each month: Day 1 is 1 January 2026 and Day 12 is 1 December 2026. Each day is a timed shift: the clock runs from **9:00 AM to 5:00 PM** in 30-minute steps over **4 real minutes**, and the player inspects as many ships as they can. At 5 PM the ship at the booth is sent away and the day ends.
+The game takes place in **2026** and lasts up to **12 days**, one for each month: Day 1 is 1 January 2026 and Day 12 is 1 December 2026. Each day is a timed shift: the clock runs from **9:00 AM to 5:00 PM** in 30-minute steps over **3 real minutes**, and the player inspects as many ships as they can. At 5 PM the ship at the booth is sent away and the day ends.
 
 ### Fishing reports
 Say **what** a ship caught and **how**. Reports are randomly generated from pools of options:
@@ -76,7 +76,8 @@ Money is the port's operating budget (tuned in `src/data/economy.ts`). It pushes
 | End of each day | −$100 operating expense. If the port can't pay, it shuts down |
 
 ### Falsified reports and verification
-- **Days 1–3:** every report is true.
+- **Days 1–2:** every report is true.
+- **Day 3:** 40% of illegal vessels hand over paperwork that passes every rule, with no discrepancies. No verification tools exist yet, so only the blacklist can catch them.
 - **Day 4:** a Port Authority bulletin warns that some vessels falsify their reports and issues **Vessel Tracking**. The first vessel that day is a guided example: its paperwork looks clean, but tracking places it outside San Diego waters.
 - **Days 4–12:** more and more illegal vessels falsify their paperwork to look legal (30% of illegal vessels on Day 4, up to 60%). Each vessel has its **actual** activity (hidden) and its **reported** activity (on the documents), and decisions are judged on the actual activity.
 
@@ -85,6 +86,8 @@ Money is the port's operating budget (tuned in `src/data/economy.ts`). It pushes
 | Claims to have fished in San Diego waters | 4 | Vessel Tracking (issued Day 4) |
 | Leaves illegal catches or bait off the report | 5 | Catch Verification (shop) |
 | Forged license claiming permits it doesn't have | 7 | License Database (shop) |
+
+**Blacklist (Day 3 onward):** each day the regulations sheet lists 5–10 known offenders to reject on sight, and the list changes every day. A third of illegal vessels (including ones whose paperwork looks legal) sail under a blacklisted name, and legal vessels never do.
 
 Tools show **evidence, not verdicts**: the player compares what they find with the documents and the regulations. Some legal vessels have harmless mismatches (for example, a different San Diego fishing ground), so a mismatch alone doesn't prove anything. The license card also shows the vessel's **port record** (prior violations). It's a free but imperfect hint, since liars are more likely to have prior violations.
 

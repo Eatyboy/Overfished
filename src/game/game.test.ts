@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { addMonths, compareDates, dateOfDay, formatDate } from './date'
-import { generateShip } from './generateShip'
+import { generateBlacklist, generateShip } from './generateShip'
 import { mulberry32 } from './random'
 import { findViolations, regulationsForDay } from './regulations'
 import { FISHING_REGIONS, SPECIES, SPECIES_NAMES } from '../data/pools'
 import { DAY_REGULATIONS, RULES } from '../data/regulations'
 import { START_DATE, TOTAL_DAYS } from '../data/start'
-import { FALSIFIED_REPORTS } from '../data/economy'
+import { BLACKLIST, FALSIFIED_REPORTS } from '../data/economy'
 import type { CatchEntry, Documents, FishingLicense, FishingReport, InspectionContext, Regulation } from './types'
 
 // ---- helpers ----
@@ -257,12 +257,28 @@ describe('falsified reports', () => {
     return { ships, regulations, ctx }
   }
 
-  it('never happen before day 4: every report is the truth', () => {
-    for (const day of [1, 2, 3]) {
+  it('never happen on days 1 and 2: every report is the truth', () => {
+    for (const day of [1, 2]) {
       for (const ship of shipsOn(day, 100).ships) {
         expect(ship.lies).toEqual([])
         expect(ship.actual).toEqual({ report: ship.report, license: ship.license })
       }
+    }
+  })
+
+  it('on day 3, give 40% of illegal vessels paperwork with nothing wrong on it', () => {
+    const { ships, regulations, ctx } = shipsOn(3, 1000)
+    const illegal = ships.filter((s) => findViolations(s.actual, regulations, ctx).length > 0)
+    const clean = illegal.filter((s) => findViolations(s, regulations, ctx).length === 0)
+    for (const s of clean) expect(s.lies.length).toBeGreaterThan(0)
+    expect(clean.length / illegal.length).toBeGreaterThan(FALSIFIED_REPORTS.cleanPaperwork.chance - 0.06)
+    expect(clean.length / illegal.length).toBeLessThan(FALSIFIED_REPORTS.cleanPaperwork.chance + 0.06)
+  })
+
+  it('on day 3, leave legal vessels without harmless mismatches', () => {
+    const { ships, regulations, ctx } = shipsOn(3)
+    for (const s of ships.filter((s) => findViolations(s.actual, regulations, ctx).length === 0)) {
+      expect(s.actual).toEqual({ report: s.report, license: s.license })
     }
   })
 
@@ -308,6 +324,63 @@ describe('falsified reports', () => {
     for (let i = 0; i < 20; i++) {
       const s = generateShip(mulberry32(i), { arrivalNo: 1, day, regulations: regulationsForDay(day), ctx, requireLie: 'tracking' })
       expect(s.lies).toEqual(['tracking'])
+    }
+  })
+})
+
+// ---- blacklist ----
+
+describe('blacklist', () => {
+  const blacklist = ['The Iron Gull', 'The Quiet Tide', 'The Lucky Heron', 'The Salty Anchor', 'The Golden Marlin']
+
+  const shipsOn = (day: number, n = 1500) => {
+    const ctx = { date: dateOfDay(START_DATE, day), biodiversity: 100 }
+    const regulations = regulationsForDay(day)
+    const ships = Array.from({ length: n }, (_, i) =>
+      generateShip(mulberry32(5000 + i), { arrivalNo: 1, day, regulations, ctx, blacklist }),
+    )
+    const illegal = ships.filter((s) => findViolations(s.actual, regulations, ctx).length > 0)
+    return { ships, illegal, regulations, ctx }
+  }
+  const listed = (s: { report: { vesselName: string } }) => blacklist.includes(s.report.vesselName)
+
+  it('has 5 to 10 distinct names', () => {
+    for (let i = 0; i < 50; i++) {
+      const names = generateBlacklist(mulberry32(i))
+      expect(names.length).toBeGreaterThanOrEqual(BLACKLIST.size[0])
+      expect(names.length).toBeLessThanOrEqual(BLACKLIST.size[1])
+      expect(new Set(names).size).toBe(names.length)
+    }
+  })
+
+  it('never lists a legal vessel', () => {
+    for (const day of [3, 8]) {
+      const { ships, illegal } = shipsOn(day, 400)
+      for (const s of ships.filter((s) => !illegal.includes(s))) expect(listed(s)).toBe(false)
+    }
+  })
+
+  it('lists about a third of illegal vessels, including ones whose paperwork looks legal', () => {
+    for (const day of [3, 8]) {
+      const { illegal, regulations, ctx } = shipsOn(day)
+      const rate = illegal.filter(listed).length / illegal.length
+      expect(rate).toBeGreaterThan(BLACKLIST.chance - 0.06)
+      expect(rate).toBeLessThan(BLACKLIST.chance + 0.06)
+      const cleanLooking = illegal.filter((s) => findViolations(s, regulations, ctx).length === 0)
+      expect(cleanLooking.filter(listed).length).toBeGreaterThan(0)
+      for (const s of illegal.filter(listed)) {
+        expect(s.license.vesselName).toBe(s.report.vesselName)
+        expect(s.actual.report.vesselName).toBe(s.report.vesselName)
+      }
+    }
+  })
+
+  it('never lists the guided example', () => {
+    const day = 4
+    const ctx = { date: dateOfDay(START_DATE, day), biodiversity: 100 }
+    for (let i = 0; i < 50; i++) {
+      const s = generateShip(mulberry32(i), { arrivalNo: 1, day, regulations: regulationsForDay(day), ctx, requireLie: 'tracking', blacklist })
+      expect(listed(s)).toBe(false)
     }
   })
 })

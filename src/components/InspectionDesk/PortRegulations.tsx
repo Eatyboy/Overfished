@@ -6,11 +6,13 @@ import styles from './PortRegulations.module.css'
 interface PortRegulationsProps {
   shift: ShiftInfo
   regulations: Regulation[]
+  /** Today's blacklisted vessel names; the section is hidden when empty. */
+  blacklist: string[]
 }
 
 const pad2 = (n: number) => String(n).padStart(2, '0')
 
-export function PortRegulations({ shift, regulations }: PortRegulationsProps) {
+export function PortRegulations({ shift, regulations, blacklist }: PortRegulationsProps) {
   return (
     <article className={`${paper.paper} ${styles.regulations}`} aria-label="Port regulations">
       <p className={paper.meta}>Ministry of Marine Affairs</p>
@@ -35,6 +37,17 @@ export function PortRegulations({ shift, regulations }: PortRegulationsProps) {
           </li>
         ))}
       </ol>
+
+      {blacklist.length > 0 && (
+        <section className={styles.blacklist} aria-label="Blacklist">
+          <h3 className={styles.blacklistTitle}>Blacklist &nbsp;/&nbsp; Reject on sight</h3>
+          <ul className={styles.names}>
+            {blacklist.map((name) => (
+              <li key={name}>{name}</li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <footer className={`${paper.footer} ${styles.footer}`}>
         <span>Reject if any requirement is not met.</span>
