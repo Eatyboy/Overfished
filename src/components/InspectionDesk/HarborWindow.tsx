@@ -115,11 +115,13 @@ export function HarborWindow({ vesselNumber, arrivalNo, minutes }: HarborWindowP
             ))}
           </g>
 
-          {/* lighthouse */}
+          {/* lighthouse, standing on a rocky base at the waterline */}
           <rect x={126} y={83} width={34} height={22} fill="var(--cream)" />
           <rect x={126} y={105} width={34} height={14} fill="var(--city)" />
-          <rect x={126} y={119} width={34} height={70} fill="var(--cream)" />
-          <rect x={137} y={158} width={13} height={31} fill="var(--ink)" />
+          <rect x={126} y={119} width={34} height={HORIZON_Y - 8 - 119} fill="var(--cream)" />
+          <rect x={137} y={HORIZON_Y - 8 - 31} width={13} height={31} fill="var(--ink)" />
+          <rect x={114} y={HORIZON_Y - 8} width={58} height={8} fill="var(--ink-soft)" />
+          <rect x={106} y={HORIZON_Y - 4} width={74} height={4} fill="var(--ink-soft)" />
 
           {/* near pier */}
           <rect x={GLASS.x} y={292} width={370} height={14} fill="var(--ink-soft)" />
