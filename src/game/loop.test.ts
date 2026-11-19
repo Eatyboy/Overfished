@@ -46,18 +46,18 @@ function gameWith(legal: boolean): Progress {
 }
 
 describe('shift clock', () => {
-  it('runs 9 AM to 5 PM in 30-minute steps over 2 minutes', () => {
-    expect(CLOCK_STEPS).toBe(16)
-    expect(STEP_MS).toBe(7_500)
+  it('runs 9 AM to 5 PM in 15-minute steps over 2 minutes', () => {
+    expect(CLOCK_STEPS).toBe(32)
+    expect(STEP_MS).toBe(3_750)
     expect(DAY_MS).toBe(120_000)
   })
 
-  it('shows the time in half-hour steps', () => {
+  it('shows the time in quarter-hour steps', () => {
     expect(formatClock(clockMinutes(0))).toBe('9:00 AM')
-    expect(formatClock(clockMinutes(7_499))).toBe('9:00 AM')
-    expect(formatClock(clockMinutes(7_500))).toBe('9:30 AM')
-    expect(formatClock(clockMinutes(6 * 7_500))).toBe('12:00 PM')
-    expect(formatClock(clockMinutes(7 * 7_500))).toBe('12:30 PM')
+    expect(formatClock(clockMinutes(3_749))).toBe('9:00 AM')
+    expect(formatClock(clockMinutes(3_750))).toBe('9:15 AM')
+    expect(formatClock(clockMinutes(12 * 3_750))).toBe('12:00 PM')
+    expect(formatClock(clockMinutes(13 * 3_750))).toBe('12:15 PM')
     expect(formatClock(clockMinutes(DAY_MS))).toBe('5:00 PM')
     expect(formatClock(clockMinutes(DAY_MS * 2))).toBe('5:00 PM')
   })

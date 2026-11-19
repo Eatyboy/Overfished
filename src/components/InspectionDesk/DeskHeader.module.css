@@ -23,7 +23,7 @@
 }
 
 .location,
-.clock {
+.date {
   margin: 0;
   font-size: 14px;
   letter-spacing: 0.06em;
@@ -32,8 +32,75 @@
   opacity: 0.85;
 }
 
-.clock {
+.right {
   justify-self: end;
   display: flex;
-  gap: 14px;
+  align-items: center;
+  gap: 18px;
+}
+
+/* The shift clock: big pixel digits over a bar that fills one segment per hour. */
+.clock {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  padding: 5px 10px 6px;
+  background: var(--ink-soft);
+  box-shadow:
+    0 0 0 3px var(--tan),
+    4px 4px 0 3px #0e171b;
+}
+
+.time {
+  min-width: 9ch;
+  font-family: var(--font-pixel);
+  font-size: 20px;
+  line-height: 1;
+  text-align: right;
+  color: var(--tan-light);
+  text-shadow: 2px 2px 0 #0e171b;
+}
+
+.bar {
+  display: flex;
+  gap: 2px;
+  height: 5px;
+}
+
+.segment {
+  flex: 1;
+  background:
+    linear-gradient(var(--tan-light) 0 0) left / calc(var(--fill) * 100%) 100% no-repeat,
+    var(--ink);
+}
+
+/* Last hour of the shift: the clock turns red and blinks. */
+.closing {
+  box-shadow:
+    0 0 0 3px var(--red-light),
+    4px 4px 0 3px #0e171b;
+}
+
+.closing .time {
+  color: var(--red-light);
+  animation: blink 1s steps(2, jump-none) infinite;
+}
+
+.closing .segment {
+  background:
+    linear-gradient(var(--red-light) 0 0) left / calc(var(--fill) * 100%) 100% no-repeat,
+    var(--ink);
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .closing .time {
+    animation: none;
+  }
 }

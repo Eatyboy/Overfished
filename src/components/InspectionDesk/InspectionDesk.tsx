@@ -1,6 +1,6 @@
 import { useCallback } from 'react'
 import { useGameStore } from '../../store/gameStore'
-import { clockMinutes, formatClock } from '../../game/clock'
+import { clockMinutes } from '../../game/clock'
 import { freeInspections, habitatRecovery, hasTool, inspectionCost } from '../../game/loop'
 import type { Tool } from '../../game/types'
 import { useShiftTimer } from './useShiftTimer'
@@ -35,7 +35,7 @@ export function InspectionDesk() {
   const briefing = useGameStore((s) => s.briefing)
   const bulletin = useGameStore((s) => s.bulletin)
   const newDay = useGameStore((s) => s.newDay)
-  const clock = useGameStore((s) => formatClock(clockMinutes(s.elapsedMs)))
+  const minutes = useGameStore((s) => clockMinutes(s.elapsedMs))
   const tick = useGameStore((s) => s.tick)
   const ship = useGameStore((s) => s.ship)
   const regulations = useGameStore((s) => s.regulations)
@@ -60,13 +60,14 @@ export function InspectionDesk() {
 
   return (
     <main className={styles.screen}>
-      <DeskHeader shift={shift} clock={clock} />
+      <DeskHeader shift={shift} minutes={minutes} />
 
       <section className={styles.top}>
         <HarborWindow
           // While a ticket is open the decided vessel is still at the booth.
           vesselNumber={ticket ? shift.vesselNumber - 1 : shift.vesselNumber}
           arrivalNo={onDesk.report.arrivalNo}
+          minutes={minutes}
         />
         <BiodiversityPanel biodiversity={biodiversity} recovered={newDay ? habitatRecovery({ owned }) : 0} />
         <VerificationPanel

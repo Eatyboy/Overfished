@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Boat } from '../pixel/Boat'
+import { SillClock } from './SillClock'
 import { makeRipples } from '../pixel/random'
 import pixel from '../pixel/pixel.module.css'
 import styles from './HarborWindow.module.css'
@@ -37,6 +38,8 @@ interface HarborWindowProps {
   vesselNumber: number
   /** Identifies the vessel at the booth. When it changes, the old boat sails out and the new one sails in. */
   arrivalNo: number
+  /** Shift clock, in in-game minutes since midnight, shown on the sill clock. */
+  minutes: number
 }
 
 /** Foam left behind the stern while a boat is under way (Boat coordinates). */
@@ -59,7 +62,7 @@ function Wake() {
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
-export function HarborWindow({ vesselNumber, arrivalNo }: HarborWindowProps) {
+export function HarborWindow({ vesselNumber, arrivalNo, minutes }: HarborWindowProps) {
   // The boat at the booth, and the one sailing away after a decision (null once it is out of sight).
   const [docked, setDocked] = useState(arrivalNo)
   const [leaving, setLeaving] = useState<number | null>(null)
@@ -165,6 +168,9 @@ export function HarborWindow({ vesselNumber, arrivalNo }: HarborWindowProps) {
         {/* sill */}
         <rect x={0} y={327} width={760} height={14} fill="var(--brown)" />
         <rect x={0} y={327} width={760} height={3} fill="var(--tan)" />
+
+        {/* alarm clock standing on the sill */}
+        <SillClock minutes={minutes} />
       </svg>
 
       <p className={styles.vesselTag}>
