@@ -44,7 +44,7 @@ Rules come into force one or two at a time (see `src/data/regulations.ts`). What
 | --- | --- |
 | 1 (Jan) | Must have fished in San Diego waters |
 | 1 (Jan) | Off limits: giant sea bass, red abalone, white shark |
-| 2 (Feb) | California sheepshead: fishing season March – December, 13 in minimum. Matching documents: the vessel named on the report must match the license |
+| 2 (Feb) | California sheepshead: fishing season March – December, 13 in minimum. Matching documents: the vessel named on the report must match the license. License stamp: every license must carry the official Port Authority stamp (pictured on the regulations sheet) |
 | 3 (Mar) | Ocean salmon: fishing season May – September, 27 in minimum |
 | 4 (Apr) | White seabass: fishing season June 16 – March 14 |
 | 5 (May) | Skipjack tuna and blue shark require an HMS permit |
@@ -77,7 +77,7 @@ Money is the port's operating budget (tuned in `src/data/economy.ts`). It pushes
 
 ### Falsified reports and verification
 - **Days 1–2:** every report is true.
-- **Day 2 onward:** some illegal vessels hand over a license made out to a different vessel, usually one word off (e.g. *The Silver Petrel* vs *The Silver Pelican*). This is not hidden: it breaks the Matching documents rule right on the paperwork. 25% of illegal vessels that aren't falsifying their paperwork do this.
+- **Day 2 onward:** 25% of illegal vessels that aren't falsifying their paperwork hand over a visibly flawed license, one of three kinds equally often: made out to a different vessel (usually one word off, e.g. *The Silver Petrel* vs *The Silver Pelican*), missing its stamp, or carrying a forged stamp (names the Port of Long Beach, red ink instead of blue, or square instead of round). Nothing is hidden: each breaks the Matching documents or License stamp rule right on the paperwork.
 - **Day 3:** 40% of illegal vessels hand over paperwork that passes every rule, with no discrepancies. No verification tools exist yet, so only the blacklist can catch them.
 - **Day 4:** a Port Authority bulletin warns that some vessels falsify their reports and issues **Vessel Tracking**. The first vessel that day is a guided example: its paperwork looks clean, but tracking places it outside San Diego waters.
 - **Days 4–12:** more and more illegal vessels falsify their paperwork to look legal (30% of illegal vessels on Day 4, up to 60%). Each vessel has its **actual** activity (hidden) and its **reported** activity (on the documents), and decisions are judged on the actual activity.

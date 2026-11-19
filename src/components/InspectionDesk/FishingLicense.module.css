@@ -29,6 +29,34 @@
   font-size: 15px;
 }
 
+/* Top-right corner, over the title rule: a dashed outline the stamp is pressed onto. */
+.stampBox {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 88px;
+  height: 88px;
+  display: grid;
+  place-items: center;
+  border: 2px dashed #b7ab88;
+  border-radius: 50%;
+}
+
+.stamp {
+  position: absolute;
+  inset: 0;
+  opacity: 0.85;
+  mix-blend-mode: multiply;
+  transform: rotate(-10deg);
+}
+
+.stampLabel {
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #a69a76;
+}
+
 .upper {
   text-transform: uppercase;
 }

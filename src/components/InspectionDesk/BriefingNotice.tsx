@@ -2,6 +2,7 @@ import type { ShiftInfo } from '../../game/types'
 import { formatDate } from '../../game/date'
 import { newRegulations } from '../../game/regulations'
 import { useDismiss } from './useDismiss'
+import { Stamp } from './Stamp'
 import notice from './TicketNotice.module.css'
 import styles from './EvidenceNotice.module.css'
 
@@ -43,6 +44,11 @@ export function BriefingNotice({ shift, onDismiss }: BriefingNoticeProps) {
             {rules.map((rule) => (
               <li key={rule.id}>
                 <b>{rule.title}:</b> {rule.description}
+                {rule.figure === 'official-stamp' && (
+                  <div>
+                    <Stamp kind="official" size={72} />
+                  </div>
+                )}
               </li>
             ))}
           </ul>

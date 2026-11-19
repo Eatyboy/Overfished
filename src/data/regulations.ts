@@ -59,6 +59,18 @@ export const RULES = {
         ? null
         : `The report is for ${report.vesselName}, but the license is for ${license.vesselName}.`,
   },
+  licenseStamp: {
+    id: 'license-stamp',
+    title: 'License stamp',
+    description: 'Every license must carry the official Port Authority stamp:',
+    figure: 'official-stamp',
+    findIssue: ({ license }) =>
+      license.stamp === 'official'
+        ? null
+        : license.stamp === null
+          ? 'The license has no Port Authority stamp.'
+          : 'The stamp on the license is not the official Port Authority stamp.',
+  },
   sanDiegoWaters: {
     id: 'san-diego-waters',
     title: 'San Diego waters only',
@@ -183,7 +195,7 @@ export const STATIC_REGULATIONS: Regulation[] = []
  */
 const ROLLOUT: Regulation[][] = [
   [R.sanDiegoWaters, R.offLimits], // 1  Jan
-  [R.sheepshead, R.matchingDocuments], // 2  Feb
+  [R.sheepshead, R.matchingDocuments, R.licenseStamp], // 2  Feb
   [R.oceanSalmon], //                 3  Mar
   [R.whiteSeabass], //                4  Apr
   [R.hmsPermit], //                   5  May

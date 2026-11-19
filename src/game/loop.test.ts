@@ -175,7 +175,7 @@ describe('start-of-day briefing', () => {
 
   it('lists only the rules new that day', () => {
     expect(newRegulations(1).map((r) => r.id)).toEqual(['san-diego-waters', 'off-limits'])
-    expect(newRegulations(2).map((r) => r.id)).toEqual(['sheepshead', 'matching-documents'])
+    expect(newRegulations(2).map((r) => r.id)).toEqual(['sheepshead', 'matching-documents', 'license-stamp'])
     expect(newRegulations(11)).toEqual([])
   })
 

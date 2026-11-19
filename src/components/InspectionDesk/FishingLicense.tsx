@@ -3,6 +3,7 @@ import { formatDate } from '../../game/date'
 import paper from './Paper.module.css'
 import styles from './FishingLicense.module.css'
 import type { DragProps } from './useDeskDocuments'
+import { Stamp } from './Stamp'
 
 interface FishingLicenseProps {
   license: FishingLicenseData
@@ -16,6 +17,15 @@ export function FishingLicense({ license, priorViolations, drag }: FishingLicens
     <article {...drag} className={`${paper.paper} ${styles.license}`} aria-label="Fishing license">
       <p className={paper.meta}>Commercial Fishing</p>
       <h2 className={`${paper.title} ${styles.title}`}>License</h2>
+
+      {/* The stamp box: empty when the license has no stamp. */}
+      <div className={styles.stampBox}>
+        {license.stamp ? (
+          <Stamp kind={license.stamp} size={88} className={styles.stamp} />
+        ) : (
+          <span className={styles.stampLabel}>Port stamp</span>
+        )}
+      </div>
 
       <dl className={styles.fields}>
         <dt className={paper.label}>Vessel</dt>

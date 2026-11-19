@@ -34,12 +34,19 @@ export interface FishingReport {
   bait: string | null
 }
 
+/** A forged stamp: the official design with one thing wrong (the port named, the ink colour, or the shape). */
+export type ForgedStamp = 'wrong-port' | 'wrong-ink' | 'wrong-shape'
+
+/** The stamp on a license: the official Port Authority stamp, a forgery, or none at all (null). */
+export type StampKind = 'official' | ForgedStamp | null
+
 /** The ship's fishing license. Always has the same fields. */
 export interface FishingLicense {
   vesselName: string
   licenseNumber: string
   expires: GameDate
   permits: Permit[]
+  stamp: StampKind
 }
 
 /** A fishing report and license together: what regulations are checked against. */
@@ -76,6 +83,8 @@ export interface Regulation {
   id: string
   title: string
   description: string
+  /** A picture shown with the rule on the regulations sheet. */
+  figure?: 'official-stamp'
   /** Null if the ship complies; otherwise a short explanation of what breaks the rule. */
   findIssue: (docs: Documents, ctx: InspectionContext) => string | null
 }

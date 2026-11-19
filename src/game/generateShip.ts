@@ -1,4 +1,4 @@
-import type { CatchEntry, Documents, InspectionContext, Permit, Regulation, Ship, Tool } from './types'
+import type { CatchEntry, Documents, ForgedStamp, InspectionContext, Permit, Regulation, Ship, Tool } from './types'
 import { addMonths } from './date'
 import { pick, pickDistinct, randInt, type Rng } from './random'
 import { findViolations } from './regulations'
@@ -10,7 +10,7 @@ import {
   VESSEL_ADJECTIVES,
   VESSEL_NOUNS,
 } from '../data/pools'
-import { BLACKLIST, FALSIFIED_REPORTS, MISMATCHED_LICENSE } from '../data/economy'
+import { BLACKLIST, FALSIFIED_REPORTS, LICENSE_DISCREPANCY } from '../data/economy'
 import { RULES } from '../data/regulations'
 
 interface GenerateOptions {
@@ -43,6 +43,19 @@ export function misnamed(rand: Rng, name: string): string {
   const [the, adjective, noun] = name.split(' ')
   if (rand() < 0.5) return `${the} ${pick(rand, VESSEL_ADJECTIVES.filter((a) => a !== adjective))} ${noun}`
   return `${the} ${adjective} ${pick(rand, VESSEL_NOUNS.filter((n) => n !== noun))}`
+}
+
+export const FORGED_STAMPS: readonly ForgedStamp[] = ['wrong-port', 'wrong-ink', 'wrong-shape']
+
+/** Visible flaws an honest-but-illegal vessel's license can have. */
+type LicenseFlaw = 'name' | 'missing-stamp' | 'forged-stamp'
+
+function withFlaw(rand: Rng, docs: Documents, flaw: LicenseFlaw): Documents {
+  const license = { ...docs.license }
+  if (flaw === 'name') license.vesselName = misnamed(rand, docs.report.vesselName)
+  else if (flaw === 'missing-stamp') license.stamp = null
+  else license.stamp = pick(rand, FORGED_STAMPS)
+  return { ...docs, license }
 }
 
 /** A day's blacklist: distinct vessel names, sized by BLACKLIST.size. */
@@ -81,6 +94,7 @@ export function randomDocuments(rand: Rng, arrivalNo: number, ctx: InspectionCon
       licenseNumber: `L-${String(randInt(rand, 0, 999999)).padStart(6, '0')}`,
       expires: { ...addMonths(ctx.date, randInt(rand, 1, 24)), day: randInt(rand, 1, 28) },
       permits,
+      stamp: 'official',
     },
   }
 }
@@ -192,12 +206,14 @@ function buildShip(rand: Rng, opts: GenerateOptions): Ship {
     if (lie) return { ...lie.shown, actual, lies: lie.lies, priorViolations: priorViolations(rand, true, false) }
   }
 
-  // Day 2+: an honest but illegal vessel whose license is made out to a different vessel.
-  const matchingRule = regulations.some((r) => r.id === RULES.matchingDocuments.id)
-  if (!legal && !requireLie && matchingRule && rand() < MISMATCHED_LICENSE.chance) {
-    const docs = randomDocuments(rand, opts.arrivalNo, ctx)
-    const mismatched = { ...docs, license: { ...docs.license, vesselName: misnamed(rand, docs.report.vesselName) } }
-    return { ...mismatched, actual: mismatched, lies: [], priorViolations: priorViolations(rand, false, false) }
+  // Day 2+: an honest but illegal vessel whose license is visibly flawed (wrong vessel, no stamp, forged stamp).
+  const inForce = (id: string) => regulations.some((r) => r.id === id)
+  const flaws: LicenseFlaw[] = []
+  if (inForce(RULES.matchingDocuments.id)) flaws.push('name')
+  if (inForce(RULES.licenseStamp.id)) flaws.push('missing-stamp', 'forged-stamp')
+  if (!legal && !requireLie && flaws.length > 0 && rand() < LICENSE_DISCREPANCY.chance) {
+    const flawed = withFlaw(rand, randomDocuments(rand, opts.arrivalNo, ctx), pick(rand, flaws))
+    return { ...flawed, actual: flawed, lies: [], priorViolations: priorViolations(rand, false, false) }
   }
 
   if (legal && allowed.length > 0 && rand() < FALSIFIED_REPORTS.innocentDiscrepancy) {

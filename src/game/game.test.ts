@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { addMonths, compareDates, dateOfDay, formatDate } from './date'
-import { generateBlacklist, generateShip, misnamed } from './generateShip'
+import { FORGED_STAMPS, generateBlacklist, generateShip, misnamed } from './generateShip'
 import { mulberry32 } from './random'
 import { findViolations, regulationsForDay } from './regulations'
 import { FISHING_REGIONS, SPECIES, SPECIES_NAMES } from '../data/pools'
 import { DAY_REGULATIONS, RULES } from '../data/regulations'
 import { START_DATE, TOTAL_DAYS } from '../data/start'
-import { BLACKLIST, FALSIFIED_REPORTS, MISMATCHED_LICENSE } from '../data/economy'
-import type { CatchEntry, Documents, FishingLicense, FishingReport, InspectionContext, Regulation } from './types'
+import { BLACKLIST, FALSIFIED_REPORTS, LICENSE_DISCREPANCY } from '../data/economy'
+import type { CatchEntry, Documents, FishingLicense, FishingReport, InspectionContext, Regulation, Ship } from './types'
 
 // ---- helpers ----
 
@@ -34,6 +34,7 @@ function makeShip(report: Partial<FishingReport> = {}, license: Partial<FishingL
       licenseNumber: 'L-000001',
       expires: { year: 1990, month: 1, day: 1 },
       permits: [],
+      stamp: 'official',
       ...license,
     },
   }
@@ -152,6 +153,15 @@ describe('regulations', () => {
     )
   })
 
+  it('requires the official stamp on the license', () => {
+    const rule: Regulation = RULES.licenseStamp
+    expect(rule.findIssue(makeShip(), on(7))).toBeNull()
+    expect(rule.findIssue(makeShip({}, { stamp: null }), on(7))).toBe('The license has no Port Authority stamp.')
+    for (const stamp of FORGED_STAMPS) {
+      expect(rule.findIssue(makeShip({}, { stamp }), on(7))).toBe('The stamp on the license is not the official Port Authority stamp.')
+    }
+  })
+
   it('bans tilapia bait', () => {
     expect(passes(RULES.tilapiaBait, [fish('Yellowtail')], on(7), { bait: 'Tilapia' })).toBe(false)
     expect(passes(RULES.tilapiaBait, [fish('Yellowtail')], on(7), { bait: 'Squid' })).toBe(true)
@@ -204,9 +214,11 @@ describe('rollout', () => {
     expect(regulationsForDay(1).map((r) => r.id)).toEqual(['san-diego-waters', 'off-limits'])
   })
 
-  it('adds Matching documents on day 2', () => {
-    expect(regulationsForDay(1).map((r) => r.id)).not.toContain('matching-documents')
-    expect(regulationsForDay(2).map((r) => r.id)).toContain('matching-documents')
+  it('adds Matching documents and License stamp on day 2', () => {
+    for (const id of ['matching-documents', 'license-stamp']) {
+      expect(regulationsForDay(1).map((r) => r.id)).not.toContain(id)
+      expect(regulationsForDay(2).map((r) => r.id)).toContain(id)
+    }
   })
 
   it('never drops a rule and uses every rule by the last day', () => {
@@ -401,16 +413,19 @@ describe('blacklist', () => {
   })
 })
 
-// ---- mismatched licenses ----
+// ---- flawed licenses ----
 
-describe('mismatched licenses', () => {
+describe('flawed licenses', () => {
+  const flawOf = (s: Ship) =>
+    s.license.vesselName !== s.report.vesselName ? 'name' : s.license.stamp === null ? 'missing-stamp' : s.license.stamp !== 'official' ? 'forged-stamp' : null
+
   const shipsOn = (day: number, n = 1500) => {
     const ctx = { date: dateOfDay(START_DATE, day), biodiversity: 100 }
     const regulations = regulationsForDay(day)
     const ships = Array.from({ length: n }, (_, i) => generateShip(mulberry32(9000 + i), { arrivalNo: 1, day, regulations, ctx }))
     const illegal = ships.filter((s) => findViolations(s.actual, regulations, ctx).length > 0)
-    const mismatched = ships.filter((s) => s.license.vesselName !== s.report.vesselName)
-    return { ships, illegal, mismatched, regulations, ctx }
+    const flawed = ships.filter((s) => flawOf(s) !== null)
+    return { ships, illegal, flawed, regulations, ctx }
   }
 
   it('name a vessel one word off', () => {
@@ -422,28 +437,36 @@ describe('mismatched licenses', () => {
     }
   })
 
-  it('never appear on day 1, before the Matching documents rule', () => {
-    expect(shipsOn(1, 400).mismatched).toEqual([])
+  it('never appear on day 1: every license names its vessel and has the official stamp', () => {
+    expect(shipsOn(1, 400).flawed).toEqual([])
   })
 
   it('appear from day 2 on illegal vessels only, in plain sight', () => {
     for (const day of [2, 3, 6, 12]) {
-      const { illegal, mismatched, regulations, ctx } = shipsOn(day)
-      expect(mismatched.length).toBeGreaterThan(0)
-      for (const s of mismatched) {
+      const { illegal, flawed, regulations, ctx } = shipsOn(day)
+      expect(flawed.length).toBeGreaterThan(0)
+      for (const s of flawed) {
         expect(illegal).toContain(s)
         expect(s.lies).toEqual([])
         expect(s.actual).toEqual({ report: s.report, license: s.license })
-        expect(findViolations(s, regulations, ctx).map((r) => r.id)).toContain('matching-documents')
+        const rule = flawOf(s) === 'name' ? 'matching-documents' : 'license-stamp'
+        expect(findViolations(s, regulations, ctx).map((r) => r.id)).toContain(rule)
       }
     }
   })
 
-  it('make up about a quarter of illegal vessels on day 2', () => {
-    const { illegal, mismatched } = shipsOn(2)
-    const rate = mismatched.length / illegal.length
-    expect(rate).toBeGreaterThan(MISMATCHED_LICENSE.chance - 0.06)
-    expect(rate).toBeLessThan(MISMATCHED_LICENSE.chance + 0.06)
+  it('make up about a quarter of illegal vessels on day 2, split between the three kinds', () => {
+    const { illegal, flawed } = shipsOn(2, 3000)
+    const rate = flawed.length / illegal.length
+    expect(rate).toBeGreaterThan(LICENSE_DISCREPANCY.chance - 0.05)
+    expect(rate).toBeLessThan(LICENSE_DISCREPANCY.chance + 0.05)
+    for (const kind of ['name', 'missing-stamp', 'forged-stamp']) {
+      const share = flawed.filter((s) => flawOf(s) === kind).length / flawed.length
+      expect(share).toBeGreaterThan(0.25)
+      expect(share).toBeLessThan(0.42)
+    }
+    const forged = new Set(flawed.map((s) => s.license.stamp).filter((k) => k && k !== 'official'))
+    expect([...forged].sort()).toEqual([...FORGED_STAMPS].sort())
   })
 
   it('stay mismatched when the vessel is given a blacklisted name', () => {

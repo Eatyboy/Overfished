@@ -3,6 +3,7 @@ import { formatDate } from '../../game/date'
 import paper from './Paper.module.css'
 import styles from './PortRegulations.module.css'
 import type { DragProps } from './useDeskDocuments'
+import { Stamp } from './Stamp'
 
 interface PortRegulationsProps {
   shift: ShiftInfo
@@ -33,6 +34,12 @@ export function PortRegulations({ shift, regulations, drag }: PortRegulationsPro
             <div>
               <h3 className={styles.ruleTitle}>{rule.title}</h3>
               <p className={styles.ruleText}>{rule.description}</p>
+              {rule.figure === 'official-stamp' && (
+                <figure className={styles.figure}>
+                  <Stamp kind="official" size={64} />
+                  <figcaption>Official stamp: blue ink, round, Port of San Diego</figcaption>
+                </figure>
+              )}
             </div>
           </li>
         ))}

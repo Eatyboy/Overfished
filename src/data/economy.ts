@@ -91,10 +91,11 @@ export const FALSIFIED_REPORTS = {
 }
 
 /**
- * From the day the Matching documents rule is in force (Day 2), some illegal vessels arrive with a license
- * made out to a different vessel. Nothing is hidden: the mismatch is right there on the paperwork.
+ * From Day 2 (the Matching documents and License stamp rules), some illegal vessels arrive with a flawed
+ * license: made out to a different vessel, missing its stamp, or carrying a forged stamp. Nothing is hidden:
+ * the flaw is right there on the paperwork. Each kind is equally likely.
  */
-export const MISMATCHED_LICENSE = {
+export const LICENSE_DISCREPANCY = {
   /** Chance per illegal vessel that isn't already falsifying its paperwork. */
   chance: 0.25,
 }
