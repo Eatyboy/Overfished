@@ -24,9 +24,7 @@ interface VerificationPanelProps {
 }
 
 /** The verification tools for the vessel at the booth. */
-export function VerificationPanel({ money, freeLeft, freeTotal, cost, available, inspected, onInspect }: VerificationPanelProps) {
-  const anyTool = TOOLS.some(available)
-
+export function VerificationPanel({ money, cost, available, inspected, onInspect }: VerificationPanelProps) {
   return (
     <section className={styles.panel} aria-label="Verification">
       <div className={styles.row}>

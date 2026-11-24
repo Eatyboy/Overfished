@@ -1,6 +1,5 @@
 import { useGameStore } from '../../store/gameStore'
-import { formatDate } from '../../game/date'
-import { ECONOMY, SHOP } from '../../data/economy'
+import { SHOP } from '../../data/economy'
 import styles from './DaySummary.module.css'
 
 /** Below this, the ledger warns that the fishery is close to collapse. */
