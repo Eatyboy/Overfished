@@ -14,6 +14,12 @@ export function clockMinutes(elapsedMs: number): number {
   return startHour * 60 + steps * stepMinutes
 }
 
+/** In-game minutes since midnight after `elapsedMs`, unstepped (fractional), for smoothly moving hands. */
+export function exactClockMinutes(elapsedMs: number): number {
+  const fraction = Math.min(1, Math.max(0, elapsedMs / realMs))
+  return startHour * 60 + fraction * (endHour - startHour) * 60
+}
+
 /** e.g. "9:00 AM", "12:30 PM", "5:00 PM". */
 export function formatClock(minutes: number): string {
   const h24 = Math.floor(minutes / 60)

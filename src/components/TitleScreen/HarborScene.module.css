@@ -5,9 +5,10 @@
 }
 
 /*
- * Crane winch: the 108px cable scales from its top (70px ↔ 151px)
+ * Crane winch: the 108px cable scales from its top (68px ↔ 152px)
  * and the hook moves by the same amount, so they stay attached.
- * Stepped timing keeps it chunky like the rest of the pixel art.
+ * Stepped timing keeps it chunky like the rest of the pixel art: 8 stops
+ * per stroke, 12px (three grid pixels) apart.
  */
 .craneCable {
   transform-box: fill-box;
@@ -22,22 +23,22 @@
 @keyframes cable {
   0%,
   100% {
-    transform: scaleY(0.65);
+    transform: scaleY(0.62963);
   }
   45%,
   55% {
-    transform: scaleY(1.4);
+    transform: scaleY(1.40741);
   }
 }
 
 @keyframes hook {
   0%,
   100% {
-    transform: translateY(-38px);
+    transform: translateY(-40px);
   }
   45%,
   55% {
-    transform: translateY(43px);
+    transform: translateY(44px);
   }
 }
 

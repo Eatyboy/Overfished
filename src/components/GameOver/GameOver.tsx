@@ -12,11 +12,11 @@ const COPY = {
   },
   bankrupt: {
     title: 'Port closed',
-    body: "The port couldn't cover its operating costs and has been shut down. With no inspectors at the docks, illegal catch lands unchecked.",
+    body: "The port couldn't cover its operating costs and has been shut down. With no inspectors at the docks, illegal catches lands unchecked, and marine biodiversity falls.",
   },
   healthy: {
     title: 'Season complete',
-    body: 'You made it through twelve months at the port, and the waters off San Diego are still healthy.',
+    body: 'You made it through twelve months at the port, and the waters of San Diego are still healthy.',
   },
   depleted: {
     title: 'Fishery depleted',
@@ -68,10 +68,6 @@ export function GameOver() {
             {missed.map((t) => `${TOOL_NAMES[t]} ${season.missedByTool[t]}`).join(', ')}.
           </p>
         )}
-        <p className={styles.note}>
-          A falsified report looks legal on paper. A port can only stop what it has the time, tools and budget to
-          verify.
-        </p>
       </section>
 
       <div className={styles.actions}>

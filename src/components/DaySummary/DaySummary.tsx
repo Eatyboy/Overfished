@@ -26,11 +26,10 @@ export function DaySummary() {
     <main className={styles.screen}>
       <header className={styles.header}>
         <h1 className={styles.title}>End of Day {shift.day}</h1>
-        <p className={styles.date}>{formatDate(shift.date)} &nbsp;/&nbsp; 5:00 PM</p>
       </header>
 
       <section className={styles.ledger} aria-label="Day ledger">
-        <p className={styles.meta}>Port Authority &nbsp;/&nbsp; Daily ledger</p>
+        <p className={styles.meta}>Port Authority</p>
         <h2 className={styles.paperTitle}>Ledger</h2>
 
         <dl className={styles.rows}>
@@ -83,11 +82,6 @@ export function DaySummary() {
             Fish stocks are crashing. Every illegal vessel accepted now brings the fishery closer to collapse.
           </p>
         )}
-
-        <p className={styles.warning}>
-          The port pays ${ECONOMY.operatingExpense} in operating expenses at 5 PM every day, already taken from today's
-          budget above. If it can't pay, the port shuts down.
-        </p>
       </section>
 
       <section className={styles.shop} aria-label="Shop">
@@ -118,7 +112,6 @@ export function DaySummary() {
             )
           })}
         </ul>
-        {shift.day < 4 && <p className={styles.note}>More upgrades become available as port conditions change.</p>}
       </section>
 
       <button type="button" className={styles.next} onClick={nextDay}>

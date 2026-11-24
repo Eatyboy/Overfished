@@ -1,35 +1,36 @@
+import { Sprite, type Placement, type SpriteRect } from './grid'
+
 /**
- * Pixel-art fishing boat, drawn in absolute coordinates
- * (bounding box roughly x 365–637, y 415–640).
- * Position/scale it with a wrapping <g transform>.
+ * Pixel-art fishing boat, authored in absolute coordinates (bounding box roughly x 365–637, y 415–640).
+ * Place it with `x`, `y` and `scale` rather than a <g transform>, so it snaps to the pixel grid at any size.
  */
-export function Boat() {
-  return (
-    <g>
-      {/* mast, yardarm, flag */}
-      <rect x={375} y={445} width={135} height={6} fill="var(--ink)" />
-      <rect x={405} y={415} width={7} height={160} fill="var(--ink)" />
-      <rect x={412} y={418} width={34} height={18} fill="var(--tan)" />
-      {/* chimney */}
-      <rect x={533} y={472} width={14} height={24} fill="var(--brown)" />
-      {/* cabin */}
-      <rect x={430} y={490} width={134} height={12} fill="var(--ink)" />
-      <rect x={438} y={502} width={118} height={70} fill="var(--cream)" />
-      <rect x={452} y={514} width={38} height={24} fill="var(--ink)" />
-      <rect x={500} y={514} width={42} height={24} fill="var(--ink)" />
-      <rect x={490} y={528} width={10} height={10} fill="var(--teal)" />
-      {/* cargo crates */}
-      <rect x={574} y={548} width={14} height={26} fill="var(--brown)" />
-      <rect x={591} y={548} width={14} height={26} fill="var(--brown)" />
-      {/* deck rail */}
-      <rect x={390} y={562} width={4} height={12} fill="var(--cream)" />
-      <rect x={418} y={562} width={4} height={12} fill="var(--cream)" />
-      <rect x={388} y={572} width={226} height={8} fill="var(--cream)" />
-      {/* hull */}
-      <rect x={365} y={580} width={272} height={14} fill="var(--brown)" />
-      <rect x={386} y={585} width={214} height={4} fill="var(--tan)" />
-      <rect x={372} y={594} width={258} height={24} fill="var(--ink)" />
-      <rect x={386} y={618} width={230} height={22} fill="var(--ink-soft)" />
-    </g>
-  )
+const BOAT: readonly SpriteRect[] = [
+  // mast, yardarm, flag
+  [375, 445, 135, 6, 'var(--ink)'],
+  [405, 415, 7, 160, 'var(--ink)'],
+  [412, 418, 34, 18, 'var(--tan)'],
+  // chimney
+  [533, 472, 14, 24, 'var(--brown)'],
+  // cabin
+  [430, 490, 134, 12, 'var(--ink)'],
+  [438, 502, 118, 70, 'var(--cream)'],
+  [452, 514, 38, 24, 'var(--ink)'],
+  [500, 514, 42, 24, 'var(--ink)'],
+  [490, 528, 10, 10, 'var(--teal)'],
+  // cargo crates
+  [574, 548, 14, 26, 'var(--brown)'],
+  [591, 548, 14, 26, 'var(--brown)'],
+  // deck rail
+  [390, 562, 4, 12, 'var(--cream)'],
+  [418, 562, 4, 12, 'var(--cream)'],
+  [388, 572, 226, 8, 'var(--cream)'],
+  // hull
+  [365, 580, 272, 14, 'var(--brown)'],
+  [386, 585, 214, 4, 'var(--tan)'],
+  [372, 594, 258, 24, 'var(--ink)'],
+  [386, 618, 230, 22, 'var(--ink-soft)'],
+]
+
+export function Boat(placement: Placement) {
+  return <Sprite rects={BOAT} {...placement} />
 }

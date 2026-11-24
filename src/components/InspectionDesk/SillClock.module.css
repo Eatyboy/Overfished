@@ -1,13 +1,14 @@
 /* Colours that change for the last hour of the shift. */
-.rim {
+.case {
   fill: var(--brown);
 }
 
-.minute {
-  fill: var(--red);
+/* Matches the store's tick interval (useShiftTimer), so the hand sweeps smoothly between ticks. */
+.hand {
+  transition: transform 250ms linear;
 }
 
-.closing .rim {
+.closing .case {
   fill: var(--red);
   animation: blink 1s steps(2, jump-none) infinite;
 }
@@ -19,7 +20,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .closing .rim {
+  .closing .case {
     animation: none;
   }
 }

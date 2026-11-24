@@ -17,28 +17,15 @@
 
 .row {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: baseline;
 }
 
-.budget,
 .quota {
   margin: 0;
   font-size: 13px;
   letter-spacing: 0.04em;
   text-transform: uppercase;
-}
-
-.money,
-.negative {
-  margin-left: 8px;
-  font-family: var(--font-pixel);
-  font-size: 22px;
-  color: var(--bar-on);
-}
-
-.negative {
-  color: var(--red-light);
 }
 
 .quota {

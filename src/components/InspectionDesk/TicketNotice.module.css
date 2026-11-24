@@ -114,6 +114,11 @@
   border-top: 2px dashed var(--paper-muted);
 }
 
+/* A footer holding just the button, centred (the start-of-day briefing). */
+.footerCentered {
+  justify-content: center;
+}
+
 .penalty {
   font-size: 13px;
   letter-spacing: 0.04em;

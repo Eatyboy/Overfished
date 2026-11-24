@@ -4,8 +4,8 @@
   top: 0;
   width: 1440px;
   height: 64px;
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
+  justify-content: space-between;
   align-items: center;
   padding: 0 34px 4px;
   border-bottom: 4px solid var(--brown);
@@ -22,8 +22,8 @@
   text-shadow: 3px 3px 0 #0e171b;
 }
 
-.location,
-.date {
+.date,
+.budget {
   margin: 0;
   font-size: 14px;
   letter-spacing: 0.06em;
@@ -32,65 +32,48 @@
   opacity: 0.85;
 }
 
-.right {
-  justify-self: end;
+/* Time on the left (day, date, shift clock); the port budget on the right. */
+.left {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 24px;
 }
 
-/* The shift clock: big pixel digits over a bar that fills one segment per hour. */
-.clock {
+/* The budget's label is styled like the date, but not dimmed, so the amount stays at full strength. */
+.budget {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 5px;
-  padding: 5px 10px 6px;
-  background: var(--ink-soft);
-  box-shadow:
-    0 0 0 3px var(--tan),
-    4px 4px 0 3px #0e171b;
+  align-items: center;
+  white-space: nowrap;
+  opacity: 1;
 }
 
+.money,
+.negative {
+  margin-left: 14px;
+  font-family: var(--font-pixel);
+  font-size: 20px;
+  letter-spacing: 0;
+  color: var(--bar-on);
+  text-shadow: 2px 2px 0 #0e171b;
+}
+
+.negative {
+  color: var(--red-light);
+}
+
+/* The shift clock, in big pixel digits. */
 .time {
-  min-width: 9ch;
   font-family: var(--font-pixel);
   font-size: 20px;
   line-height: 1;
-  text-align: right;
   color: var(--tan-light);
   text-shadow: 2px 2px 0 #0e171b;
 }
 
-.bar {
-  display: flex;
-  gap: 2px;
-  height: 5px;
-}
-
-.segment {
-  flex: 1;
-  background:
-    linear-gradient(var(--tan-light) 0 0) left / calc(var(--fill) * 100%) 100% no-repeat,
-    var(--ink);
-}
-
 /* Last hour of the shift: the clock turns red and blinks. */
 .closing {
-  box-shadow:
-    0 0 0 3px var(--red-light),
-    4px 4px 0 3px #0e171b;
-}
-
-.closing .time {
   color: var(--red-light);
   animation: blink 1s steps(2, jump-none) infinite;
-}
-
-.closing .segment {
-  background:
-    linear-gradient(var(--red-light) 0 0) left / calc(var(--fill) * 100%) 100% no-repeat,
-    var(--ink);
 }
 
 @keyframes blink {
@@ -100,7 +83,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .closing .time {
+  .closing {
     animation: none;
   }
 }

@@ -37,8 +37,7 @@ export function BriefingNotice({ shift, onDismiss }: BriefingNoticeProps) {
         <div id="briefing-body" className={notice.body}>
           <p className={notice.legal}>
             {first
-              ? 'Welcome to the booth. Every vessel must meet these rules to dock. Reject any that breaks one.'
-              : `${rules.length === 1 ? 'A new regulation is' : 'New regulations are'} in force from today.`}
+              && 'Welcome to the booth. Every vessel must meet these rules to dock. Reject any that breaks one.'}
           </p>
           <ul className={`${notice.issues} ${notice.spaced}`}>
             {rules.map((rule) => (
@@ -54,8 +53,7 @@ export function BriefingNotice({ shift, onDismiss }: BriefingNoticeProps) {
           </ul>
         </div>
 
-        <footer className={notice.footer}>
-          <span className={styles.hint}>{first ? 'Rules are on the desk' : 'Earlier rules still apply'}</span>
+        <footer className={`${notice.footer} ${notice.footerCentered}`}>
           <button ref={button} type="button" className={notice.button} onClick={onDismiss}>
             Begin shift
           </button>

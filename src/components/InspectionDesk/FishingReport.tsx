@@ -19,13 +19,11 @@ export function FishingReport({ report, drag }: FishingReportProps) {
       <h2 className={paper.title}>Fishing Report</h2>
 
       <section className={styles.section}>
-        <h3 className={paper.label}>01 &nbsp;Vessel &amp; Region</h3>
         <p className={`${styles.value} ${styles.upper}`}>{report.vesselName}</p>
         <p className={styles.detail}>Fished in: {report.fishingRegion}</p>
       </section>
 
       <section className={styles.section}>
-        <h3 className={paper.label}>02 &nbsp;Catch</h3>
         <table className={styles.catch}>
           <thead>
             <tr>
@@ -51,7 +49,7 @@ export function FishingReport({ report, drag }: FishingReportProps) {
       </section>
 
       <section className={`${styles.section} ${styles.last}`}>
-        <h3 className={paper.label}>03 &nbsp;Bait Carried</h3>
+        <h3 className={paper.label}>Bait Carried</h3>
         <p className={styles.value}>{report.bait ?? 'None'}</p>
       </section>
     </article>

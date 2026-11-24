@@ -45,8 +45,8 @@
 }
 
 /*
- * Boat motion, in the boat's own coordinates (the booth boat is drawn at 0.63 scale,
- * so 760 units clears the window glass on either side). Stepped to keep the pixel-art feel.
+ * Boat motion, in stage units: far enough to clear the window glass on either side. Stepped to keep
+ * the pixel-art feel, with each step a whole number of 4-unit pixels (440 / 22 = 20, 504 / 18 = 28).
  */
 .sailIn {
   animation: sail-in 1100ms steps(22, jump-end) 250ms both;
@@ -58,7 +58,7 @@
 
 @keyframes sail-in {
   from {
-    transform: translateX(-760px);
+    transform: translateX(-440px);
   }
   to {
     transform: translateX(0);
@@ -70,7 +70,7 @@
     transform: translateX(0);
   }
   to {
-    transform: translateX(760px);
+    transform: translateX(504px);
   }
 }
 
@@ -107,17 +107,17 @@
   }
 }
 
-/* The far boat (0.4 scale) crosses from right to left, off-glass at both ends, then starts over. */
+/* The far boat crosses from right to left, off-glass at both ends, then starts over (840 / 210 = 4 per step). */
 .cruise {
-  animation: cruise 45s steps(180, jump-none) -18s infinite;
+  animation: cruise 45s steps(211, jump-none) -18s infinite;
 }
 
 @keyframes cruise {
   from {
-    transform: translateX(500px);
+    transform: translateX(200px);
   }
   to {
-    transform: translateX(-1600px);
+    transform: translateX(-640px);
   }
 }
 

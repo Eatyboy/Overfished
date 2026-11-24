@@ -11,6 +11,7 @@ const ACTION: Record<Tool, string> = {
 }
 
 interface VerificationPanelProps {
+  /** Port budget, to grey out inspections the port can't afford (the amount shows in the header). */
   money: number
   freeLeft: number
   freeTotal: number
@@ -22,22 +23,15 @@ interface VerificationPanelProps {
   onInspect: (tool: Tool) => void
 }
 
-/** Port budget and the verification tools for the vessel at the booth. */
+/** The verification tools for the vessel at the booth. */
 export function VerificationPanel({ money, freeLeft, freeTotal, cost, available, inspected, onInspect }: VerificationPanelProps) {
   const anyTool = TOOLS.some(available)
 
   return (
-    <section className={styles.panel} aria-label="Port budget and verification">
+    <section className={styles.panel} aria-label="Verification">
       <div className={styles.row}>
-        <p className={styles.budget}>
-          Port budget <span className={money < 0 ? styles.negative : styles.money}>${money}</span>
-        </p>
         <p className={styles.quota}>
-          {anyTool
-            ? freeLeft > 0
-              ? `Free inspections ${freeLeft}/${freeTotal}`
-              : `Inspections $${cost} each`
-            : 'Verification tools: none issued'}
+          Verification Tools
         </p>
       </div>
 
